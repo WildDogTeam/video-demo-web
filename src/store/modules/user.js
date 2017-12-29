@@ -9,8 +9,8 @@ window.wilddogVideo = base.wilddogVideo;
 wilddogVideo.regService("call", call);
 
 const wdConfig = {
-  authDomain: config.wd.syncAppId + 'wilddog.com',
-  syncURL: 'https://' + config.wd.syncAppId +  '.wilddogio.com'
+  authDomain: config.wd.syncAppid + '.wilddog.com',
+  syncURL: 'https://' + config.wd.syncAppid +  '.wilddogio.com'
 }
 wilddog.initializeApp(wdConfig);
 

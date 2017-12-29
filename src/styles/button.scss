@@ -1,0 +1,40 @@
+$org:#e6501e;
+$org-hover:#eb734b;
+$org-active:#f0916e;
+
+
+@mixin colorBtn($color, $color-hover, $color-active) {
+  background-color: $color;
+  border-color: $color;
+  &:hover {
+    background-color: $color-hover;
+    border-color: $color-hover;
+  }
+  &:focus {
+    outline: none;
+  }
+  &:active {
+    background-color: $color-active;
+    border-color: $color-active;
+  }
+}
+
+.btn {
+  padding: 0;
+  display: inline-block;
+  min-width: 60px;
+  height: 24px;
+  color: #fff;
+  text-align: center;
+  line-height: 24px;
+  border-radius: 3px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.org-btn {
+  @include colorBtn($org, $org-hover, $org-active)
+}
+
+

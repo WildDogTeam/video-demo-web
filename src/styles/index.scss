@@ -1,0 +1,138 @@
+@import './minxin.scss';
+@import './button.scss';
+@import './fonts.scss';
+@import './media.scss';
+
+html {
+  height: 100%;
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-box-pack: justify;
+  -moz-box-pack: justify;
+  -ms-flex-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  line-height: 1;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+}
+
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+a:focus,
+a:active {
+  outline: none;
+}
+
+a,
+a:focus,
+a:hover {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+a {
+  color: #20a0ff;
+  &:hover,
+  &:focus {
+    color: #4db3ff;
+  }
+}
+
+ul {
+  padding: 0;
+}
+
+ol,
+ul,
+li {
+  list-style: none;
+  margin: 0;
+}
+
+code {
+  background: #eef1f6;
+  padding: 15px 10px;
+  margin-bottom: 20px;
+  display: block;
+  line-height: 36px;
+  a {
+    color: #337ab7;
+    cursor: pointer;
+    &:hover {
+      color: rgb(32, 160, 255);
+    }
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+  font-weight: normal;
+}
+
+input {
+  border: 1px solid #f0916e;
+  border-radius: 2px;
+  padding-left: 10px;
+  line-height: 32px;
+  height: 32px;
+}
+
+input:hover {
+  border: 1px solid #e6501e;
+}
+
+input:focus {
+  border: 1px solid #e6501e;
+}
+
+input:focus {
+  outline: none;
+}
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset!important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.clearfix {
+  @include clearfix;
+}
+
+.cir {
+  width: 5px;
+  height: 5px;
+  display: inline-block;
+  border-radius: 50%;
+  background-color: #e6501e;
+  margin-right: 5px;
+  position: relative;
+  top: -1px;
+}

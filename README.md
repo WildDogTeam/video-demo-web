@@ -4,25 +4,49 @@
 
 ## 准备环境
 
-### 创建wilddog应用
+在项目的`src/config.js`文件里，运行项目前需要配置一些信息
 
-在控制面板中创建野狗应用。
+```js
+module.exports = {
+  'wd': {
+    syncAppId: "",
+    videoAppid: ""
+  },
+  'qiniu': {
+    BUCKET_NAME: "",
+    ACCESS_KEY: "",
+    SECRET_KEY: "",
+    domain: ""
+  }
+};
+```
+
+
+### 必填信息
+
+1.在`控制面板`中创建野狗应用
 
 ![](gitImages/video_quickstart_create.png)
 
-配置应用
-
-在 `身份认证` 标签页中，选择 `登录方式` 标签，开启 `匿名登录` 功能, 也可以选择其他的登录方式
+2.在 `身份认证` 标签页中，选择 `登录方式` 标签，开启 `匿名登录` 功能, 也可以选择其他的登录方式
 
 ![](gitImages/openanonymous.png)
 
-在 `实时视频通话` 标签页中，点击 `开启视频通话` 按钮。
+3.在 `实时通信引擎` 标签页中获取`syncAppId`
 
-![](https://docs.wilddog.com/images/video_quickstart_openVideo-06c0a7d46b.png)
+![](gitImages/appId.png)
 
-获取`VideoAppID`
+4.在 `实时视频通话` 标签页中获取`videoAppid`
 
-## 开始项目
+![](gitImages/VideoAppID.png)
+
+
+#### 可选配置
+
+1.使用wilddog的在线互动白板功能时，如需要操作上传图片，则需要配置[七牛](https://developer.qiniu.com/)的信息
+
+
+## 运行
 
 ``` bash
 # 安装依赖
@@ -31,5 +55,12 @@ npm install
 # 启动服务，在浏览器的地址栏里输入https://127.0.0.1:3060
 npm run dev
 
-# 打包上线
+# 打包上线,文件在dist目录下
 npm run build
+```
+
+## 支持
+
+如果在使用过程中有任何问题，请提 [issue](https://github.com/WildDogTeam/video-demo-web/issues) ，我会在 Github 上给予帮助。
+
+

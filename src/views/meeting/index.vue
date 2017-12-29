@@ -272,7 +272,7 @@ export default {
 
     if (!wilddogVideo.appId) {
       wilddogVideo.initialize({
-        appId: "wd5248438159qbhzao",
+        appId: config.wd.videoAppid,
         token: this.token
       });
     }

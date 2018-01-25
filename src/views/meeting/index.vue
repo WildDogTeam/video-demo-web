@@ -10,7 +10,7 @@
       </ul>
     </div>
     <ul class="features clearfix">
-      <li class="full-item"><i class="icon icon--4" @click="sorry"></i></li>
+      <li class="full-item"><i class="icon icon--4" @click="openDocument"></i></li>
       <li class="full-item"><i class="icon icon--3" @click="sorry"></i></li>
       <li class="full-item"><i class="icon icon--7" @click="sorry"></i></li>
       <li class="full-item"><i class="icon icon-6" @click="sorry"></i></li>
@@ -65,52 +65,81 @@
               </ul>
             </div>
           </div>
-              <div class="flie-upload">
-                <ul class="upload-head">
-                  <li class="head-item" :class="{'current-head': !document.currentTab}" @click="document.currentTab = false">文档</li>
-                  <li class="head-item" :class="{'current-head': document.currentTab}" @click="document.currentTab = true">音视频</li>
-                  <li></li>
+          <div class="flie-upload" v-show="document.status">
+            <ul class="upload-head">
+              <li class="head-item" :class="{'current-head': !document.currentTab}" @click="document.currentTab = false">文档</li>
+              <li class="head-item" :class="{'current-head': document.currentTab}" @click="document.currentTab = true">音视频</li>
+              <li class="head-close" @click="document.status = false"><i class="icon-25"></i></li>
+            </ul>
+            <div class="upload-content">
+              <div class="documents" v-if="!document.currentTab">
+                <ul class="content-item">
+                  <li class="upload-input">
+                    <div class="file file-button">上传</div>
+                    <button id="officeUpload" class="file-input">上传文件</button>
+                    <div class="file-info"><i></i>支持上传pdf、doc、docx、ppt、pptx、pptm</div>
+                  </li>
+                  <li class="upload-title">
+                      <div class="file-div">文件名</div>
+                      <div class="file-div">大小</div>
+                      <div class="file-div">上传时间</div>
+                      <div class="file-div">操作</div>
+                  </li>
+                  <li v-for="(item, key, index) in document.officeFiles.fileLists" :key="key" class="upload-title-content">
+                    <div class="file-div">{{ index + 1 }}</div>
+                    <div class="file-type-icon" :class="item.fileName | fileType"></div>
+                    <div class="file-div file-name">{{item.fileName | splitJoin}}</div>
+                    <div class="file-div size">{{item.size | readablizeBytes}}</div>
+                    <div class="file-div date">{{item.date | parseTime}}</div>
+                    <div class="file-div">
+                      <span class="file-ues" @click="useOfficeFile(key)">使用</span>
+                      <span class="file-del" @click="delOfficeFile(key)">删除</span>
+                    </div>
+                  </li>
+                  <div v-show="document.officeFiles.isEmpty" class="empty">
+                    <img src="../../assets/images/empty.png" alt="">
+                    <div class="text">暂无文档</div>
+                  </div>
                 </ul>
-                <div class="upload-content">
-                  <div class="documents" v-if="!document.currentTab">
-                    <ul class="content-item">
-                      <li class="upload-input">
-                        <div class="file file-button">上传</div>
-                        <!-- <input type="file" class="file-input" id="officeUpload"> -->
-                        <button id="officeUpload" class="file-input">上传文件</button>
-                        <div class="file-info"><i></i>支持上传pdf、doc、docx、ppt、pptx、pptm</div>
-                      </li>
-                      <li class="upload-title">
-                          <div class="file-div">文件名</div>
-                          <div class="file-div">大小</div>
-                          <div class="file-div">上传时间</div>
-                          <div class="file-div">操作</div>
-                      </li>
-                      <li v-for="(item, index) in document.officeFiles" :key="index" class="upload-title-content">
-                        <div class="file-div file-name">{{item.fileName | splitJoin}}</div>
-                        <div class="file-div size">{{item.size | readablizeBytes}}</div>
-                        <div class="file-div date">{{item.date | parseTime}}</div>
-                        <div class="file-div">
-                          <span class="file-ues">使用</span>
-                          <span class="file-del" @click="delOfficeFile('office', index)">删除</span>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                  <div class="videos" v-else>
-                    <ul class="content-item">
-                      <li class="upload-input">
-                        <div class="file-button">上传</div>
-                        <input type="file" class="file-input">
-                        <div class="file-info"><i></i>支持上传mp3、mp4</div>
-                      </li>
-                      <li class="upload-title">
-                          <div>文件名</div><div>大小</div><div>上传时间</div><div>操作</div>
-                      </li>
-                    </ul>
-                  </div>
+              </div>
+              <div class="videos" v-else>
+                <ul class="content-item">
+                  <li class="upload-input">
+                    <div class="file-button">上传</div>
+                    <input type="file" class="file-input">
+                    <div class="file-info"><i></i>支持上传mp3、mp4</div>
+                  </li>
+                  <li class="upload-title">
+                      <div>文件名</div><div>大小</div><div>上传时间</div><div>操作</div>
+                  </li>
+                </ul>
+              </div>
+              <div class="loader" v-show="document.loading">
+                <div class="ball-spin-fade-loader">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
                 </div>
               </div>
+            </div>
+          </div>
+          <div v-for="(item, key) in currentFile" class="officefile" :key="key">
+            <!-- {{key}} - {{index}} - {{value}} -->
+            <div class="officefile-head">
+              <div class="officefile-title">{{item.fileName | splitJoin}}</div>
+              <div class="head-close" @click="document.status = false"><i class="icon-25"></i></div>
+            </div>
+            <div class="officefile-content">
+              <iframe v-if="$options.filters.fileType(item.fileName) == 'ppt'" :src="item.urls[0].url" frameborder="0"></iframe>
+              <img v-else :src="item.urls[0].url" :alt="item.fileName | splitJoin">
+            </div>
+            <div class="officefile-footer">《  ||  》</div>
+          </div>
         </div>
         <div class="chat">
           <div class="msg">
@@ -129,6 +158,7 @@
     <v-dialog v-show="showDialog" :dialog-option="dialogOption" ref="dialog"></v-dialog>
   </div>
 </template>
+
 <script>
 import base from "wilddog-video-base";
 import room from "wilddog-video-room";
@@ -141,7 +171,6 @@ import { genToken, initImageUpload, uploadClient } from "@/utils/qiniu";
 import "@/assets/libs/qiniu.min";
 import "@/assets/libs/plupload/js/moxie";
 import "@/assets/libs/plupload/js/plupload.full.min.js";
-// import "@/assets/libs/plupload/js/i18n/zh_CN";
 import config from "config";
 const wilddogVideo = base.wilddogVideo;
 wilddogVideo.regService("room", room);
@@ -160,9 +189,17 @@ export default {
       participants: [],
       showDialog: false,
       document: {
+        status: true,
         currentTab: false,
-        officeFiles: {},
-        videoUpload: {}
+        loading: false,
+        officeFiles: {
+          isEmpty: true,
+          fileLists: {}
+        },
+        videoFiles: {}
+      },
+      currentFile: {
+        "-L3hDwaxJrcH0KCBWVPw":{"date":1516882348369,"fileName":"1516882345678-周一.docx","info":{"Author":"Ihoey Hou（侯毅）","CreationDate":"Thu Jan 25 20:12:26 2018","Creator":"Writer","Encrypted":"no","File size":"19308 bytes","Form":"none","JavaScript":"no","Optimized":"no","PDF version":"1.4","Page rot":"0","Page size":"595 x 842 pts (A4)","Pages":"2","Producer":"LibreOffice 5.0","Suspects":"no","Tagged":"no","UserProperties":"no"},"size":28083,"urls":[{"url":"https://whiteboard-img.wdstatic.cn/cacheFiles/docx/1516882345678-周一.docx/1516882345678-周一-0.png"},{"url":"https://whiteboard-img.wdstatic.cn/cacheFiles/docx/1516882345678-周一.docx/1516882345678-周一-1.png"}]}
       },
       isMobile: /Mobile/i.test(navigator.userAgent),
       isFF: navigator.userAgent.indexOf("Firefox") > -1,
@@ -318,15 +355,15 @@ export default {
     };
   },
   created() {
-    let roomName = location.hash.split("?")[1];
-    roomName = roomName.replace("roomId=", "").split("&")[0];
-    this.roomId = decodeURI(roomName);
-
+    // console.log(this.$route.query.roomId);
+    // let roomName = location.hash.split("?")[1];
+    // roomName = roomName.replace("roomId=", "").split("&")[0];
+    this.roomId = this.$route.query.roomId;
     this.windowUrl = `https://www.wilddog.com/demo/wilddogvideo/#/login`;
     this.userRef = wilddog.sync().ref(`room/${this.roomId}/users/`);
     this.boardRef = wilddog.sync().ref(`room/${this.roomId}/board`);
     this.chatRef = wilddog.sync().ref(`room/${this.roomId}/chat`);
-    this.documentRef = wilddog.sync().ref(`room/${this.roomId}/document`);
+    this.documentRef = this.userRef.child(`${this.uid}/document`);
 
     if (!wilddogVideo.appId) {
       wilddogVideo.initialize({
@@ -336,20 +373,19 @@ export default {
     }
 
     this.roomInstance = wilddogVideo.room(this.roomId);
-    // this.roomInstance.connect();
 
     //创建一个同时有音频和视频的媒体流
-    wilddogVideo
-      .createLocalStream({
-        captureAudio: false,
-        captureVideo: true,
-        dimension: this.dimension,
-        maxFPS: 15
-      })
-      .then(localStream => {
-        this.localStream = localStream;
-        this.localStream.attach(this.$refs.localStream);
-      });
+    // wilddogVideo
+    //   .createLocalStream({
+    //     captureAudio: false,
+    //     captureVideo: true,
+    //     dimension: this.dimension,
+    //     maxFPS: 15
+    //   })
+    //   .then(localStream => {
+    //     this.localStream = localStream;
+    //     this.localStream.attach(this.$refs.localStream);
+    //   });
 
     this.$nextTick(() => {
       let boardConfig = {
@@ -388,22 +424,6 @@ export default {
         if (msg) msg.scrollTop = msg.childNodes.length * 56;
       });
     });
-
-    //获取office列表
-    this.documentRef.on("value", snapshot => {
-      const data = snapshot.val() && snapshot.val().officeFiles;
-      for (const key in data) {
-        if (data.hasOwnProperty(key)) {
-          const element = data[key];
-          if (element.date + 86400000 < Date.now()) {
-            this.documentRef.child(`officeFiles/${element}`).remove();
-            return;
-          }
-        }
-      }
-      this.document.officeFiles = data;
-    });
-
   },
   mounted() {
     // window.addEventListener("beforeunload", event => this.leaveRoom());
@@ -417,10 +437,23 @@ export default {
 
     this.updateTime();
     this.addUid();
+
+    this.openDocument(); //临时调用
+
     const uploader = uploadClient();
+
+    uploader.bind("FilesAdded", (uploader, files) => {
+      this.document.loading = true;
+      console.log("FilesAdded!", files);
+      uploader.start();
+      //每个事件监听函数都会传入一些很有用的参数，
+      //我们可以利用这些参数提供的信息来做比如更新UI，提示上传进度等操作
+    });
+
     uploader.bind("FileUploaded", (uploader, file, result) => {
       var status = JSON.parse(result.response).status;
       var results = JSON.parse(result.response).results;
+      console.log(results);
       if (status == "success") {
         results.date = Date.now();
         this.documentRef
@@ -428,7 +461,8 @@ export default {
           .push(results)
           .then(() => {
             if (results.errors.length == 0) {
-              alert("上传成功！");
+              this.document.loading = false;
+              // alert("上传成功！");
             } else {
               alert("上传成功！部分页码转码失败！");
             }
@@ -732,8 +766,44 @@ export default {
         this.messageVal = "";
       }
     },
-    delOfficeFile(type,key){
-      this.documentRef.child(`${type == 'office' ? 'officeFiles' : 'videoFiles'}/${key}`).remove();
+    useOfficeFile(key){
+      this.document.status = false      
+      var data = this.document.officeFiles.fileLists[key];
+      this.currentFile[key] = data
+      this.boardRef.child(`currentFile`).push(data)
+    },
+    delOfficeFile(key) {
+      this.dialogOption.text = "确认删除所选文档";
+      this.showDialog = true;
+      this.$refs.dialog
+        .confirm()
+        .then(() => {
+          this.documentRef
+            .child(`officeFiles}/${key}`)
+            .remove();
+          this.showDialog = false;
+        })
+        .catch(() => {
+          this.showDialog = false;
+        });
+    },
+    openDocument() {
+      this.document.status = true;
+      //获取office列表
+      this.documentRef.on("value", snapshot => {
+        const data = snapshot.val() && snapshot.val().officeFiles;
+        for (const key in data) {
+          if (data.hasOwnProperty(key)) {
+            const element = data[key];
+            if (element.date + 86400000 < Date.now()) {
+              this.documentRef.child(`officeFiles/${element}`).remove();
+              return;
+            }
+          }
+        }
+        this.document.officeFiles.isEmpty = data ? false : true;
+        this.document.officeFiles.fileLists = data;
+      });
     }
   },
   watch: {
@@ -767,7 +837,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["name", "token", "uid", "dimension"])
+    ...mapGetters(["name", "token", "uid", "dimension"]),
   },
   filters: {
     splitJoin(e) {
@@ -775,6 +845,32 @@ export default {
         .split("-")
         .slice(1)
         .join("");
+    },
+    fileType(e) {
+      let type = e.split(".")[e.split(".").length - 1];
+      switch (type) {
+        case "pdf":
+          type = "pdf";
+          break;
+        case "doc":
+          type = "doc";
+          break;
+        case "docx":
+          type = "doc";
+          break;
+        case "ppt":
+          type = "ppt";
+          break;
+        case "pptx":
+          type = "ppt";
+          break;
+        case "pptm":
+          type = "ppt";
+          break;
+        default:
+          break;
+      }
+      return type;
     },
     readablizeBytes(bytes) {
       const s = ["Bytes", "KB", "MB", "GB", "TB", "PB"];
@@ -787,6 +883,7 @@ export default {
   }
 };
 </script>
+
 <style rel="stylesheet/scss" lang="scss">
 .meeting {
   width: 100%;
@@ -1146,6 +1243,7 @@ export default {
         width: 800px;
         height: 600px;
         position: absolute;
+        z-index: 99;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -1165,6 +1263,13 @@ export default {
               border-bottom: 5px solid #66afff;
             }
           }
+          .head-close {
+            cursor: pointer;
+            float: right;
+            padding-right: 20px;
+            padding-top: 23px;
+            font-size: 12px;
+          }
         }
         .upload-content {
           border-bottom-left-radius: 10px;
@@ -1172,6 +1277,7 @@ export default {
           background-color: #ffffff;
           height: 550px;
           overflow-y: auto;
+          position: relative;
           &::-webkit-scrollbar {
             width: 5px;
             height: 100%;
@@ -1246,11 +1352,35 @@ export default {
             }
             .upload-title-content {
               border: 1px solid transparent;
+              color: #666;
+              position: relative;
               &:hover {
                 background-color: #eaf5ff;
                 border: 1px solid #d5eaff;
               }
-              color: #666;
+              .file-type-icon {
+                width: 20px;
+                height: 24px;
+                background-size: contain;
+                position: absolute;
+                top: 10px;
+                left: 35px;
+                &.doc {
+                  background: url("../../assets/images/fileType/doc.png");
+                }
+                &.ppt {
+                  background: url("../../assets/images/fileType/ppt.png");
+                }
+                &.pdf {
+                  background: url("../../assets/images/fileType/pdf.png");
+                }
+                &.mp3 {
+                  background: url("../../assets/images/fileType/mp3.png");
+                }
+                &.mp4 {
+                  background: url("../../assets/images/fileType/mp4.png");
+                }
+              }
               .file-div {
                 float: left;
                 height: 50px;
@@ -1259,6 +1389,7 @@ export default {
               }
               .file-name {
                 width: 250px;
+                padding-left: 50px;
               }
               .size {
                 width: 85px;
@@ -1281,6 +1412,61 @@ export default {
               }
             }
           }
+          .empty {
+            padding-top: 100px;
+            text-align: center;
+            .text {
+              padding-top: 15px;
+              color: #999;
+            }
+            img {
+              padding-left: 35px;
+            }
+          }
+        }
+      }
+      .officefile {
+        width: 800px;
+        height: 540px;
+        max-width: 800px;
+        max-height: 530px;
+        position: absolute;
+        left: 20px;
+        top: 40px;
+        color: #666;
+        .officefile-head {
+          height: 40px;
+          color: #ffffff;
+          padding-left: 20px;          
+          line-height: 40px;
+          background-color: #3d424e;          
+          border-top-left-radius: 10px;
+          border-top-right-radius: 10px;
+          .officefile-title {
+            float: left;
+          }
+          .head-close {
+            float: right;
+            padding-right: 20px;
+            font-size: 12px;
+            cursor: pointer;
+          }
+        }
+        .officefile-content {
+          max-height: 500px;
+          width: 100%;
+          overflow-y: scroll;
+          img {
+            width: 100%;
+            vertical-align: middle;
+          }
+        }
+        .officefile-footer{
+          height: 40px;
+          color: #fff;
+          line-height: 40px;
+          background-color: #3d424e;
+          text-align: center;
         }
       }
     }
@@ -1311,7 +1497,6 @@ export default {
           background-color: rgb(85, 91, 106);
         }
         .msg-left {
-          // float: left;
           text-align: left;
           position: relative;
           .info {
@@ -1321,7 +1506,6 @@ export default {
           }
         }
         .msg-right {
-          // float: right;
           text-align: right;
           position: relative;
           .info {
@@ -1392,6 +1576,78 @@ export default {
         }
       }
     }
+  }
+  .loader {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  @keyframes ball-spin-fade-loader {
+    50% {
+      opacity: 0.3;
+      transform: scale(0.4);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .ball-spin-fade-loader {
+    position: relative;
+    top: 50px;
+    left: 40px;
+  }
+  .ball-spin-fade-loader > div:nth-child(1) {
+    top: 25px;
+    left: 0;
+    animation: ball-spin-fade-loader 1s -0.96s infinite linear;
+  }
+  .ball-spin-fade-loader > div:nth-child(2) {
+    top: 17.04545px;
+    left: 17.04545px;
+    animation: ball-spin-fade-loader 1s -0.84s infinite linear;
+  }
+  .ball-spin-fade-loader > div:nth-child(3) {
+    top: 0;
+    left: 25px;
+    animation: ball-spin-fade-loader 1s -0.72s infinite linear;
+  }
+  .ball-spin-fade-loader > div:nth-child(4) {
+    top: -17.04545px;
+    left: 17.04545px;
+    animation: ball-spin-fade-loader 1s -0.6s infinite linear;
+  }
+  .ball-spin-fade-loader > div:nth-child(5) {
+    top: -25px;
+    left: 0;
+    animation: ball-spin-fade-loader 1s -0.48s infinite linear;
+  }
+  .ball-spin-fade-loader > div:nth-child(6) {
+    top: -17.04545px;
+    left: -17.04545px;
+    animation: ball-spin-fade-loader 1s -0.36s infinite linear;
+  }
+  .ball-spin-fade-loader > div:nth-child(7) {
+    top: 0;
+    left: -25px;
+    animation: ball-spin-fade-loader 1s -0.24s infinite linear;
+  }
+  .ball-spin-fade-loader > div:nth-child(8) {
+    top: 17.04545px;
+    left: -17.04545px;
+    animation: ball-spin-fade-loader 1s -0.12s infinite linear;
+  }
+  .ball-spin-fade-loader > div {
+    background-color: rgb(67, 61, 61);
+    width: 15px;
+    height: 15px;
+    border-radius: 100%;
+    margin: 2px;
+    animation-fill-mode: both;
+    position: absolute;
   }
 }
 </style>

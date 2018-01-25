@@ -247,20 +247,18 @@ export default {
       this.userRef.child(this.uid).remove();
     },
     leaveRoom() {
-      this.localStream.close();
-      this.roomInstance.disconnect();
-      console.log("removeUid");
+      window.onresize = null;
+      if (this.localStream) this.localStream.close();
+      try{
+        this.roomInstance.disconnect();
+      }catch(e){
+        console.log(e)
+      }
       this.removeUid();
-      this.userRef.once('value',(snapshot)=>{
+      this.userRef.once('value', (snapshot) => {
         const data = snapshot.val()
         if (!data) wilddog.sync().ref(`room/${this.roomId}`).remove();
       })
-      // if (this.participants.length == 0) {
-      //   wilddog
-      //     .sync()
-      //     .ref(`room/${this.roomId}`)
-      //     .remove();
-      // }
     }
   },
   watch: {

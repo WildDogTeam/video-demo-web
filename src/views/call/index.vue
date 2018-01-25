@@ -49,7 +49,7 @@
           <span class="self-uid">UID:{{invitedInfo.uid}}</span>
           <button class="btn org-btn" @click='invite'>发起视频通话</button>
         </div>
-        <div class="version">V3.0.0</div>
+        <div class="version">V <span>{{appVersion}}</span> </div>
       </div>
     </div>
     <!--邀请别人-->
@@ -105,11 +105,13 @@ import selectRoom from "./selectRoom";
 import { Invite, Invited } from "views/status";
 import dialog from "@/components/Dialog";
 import config from 'config';
+import appInfo from '../../../package';
 
 export default {
   name: "call",
   data() {
     return {
+      appVersion: appInfo.version,
       userList: {},
       selectDimensionShow: false,
       currentIndex: null,
@@ -544,8 +546,16 @@ export default {
     userItem: function() {
       return Object.keys(this.userList)
         .map(e => {
-          this.userList[e].uid = e;
-          return this.userList[e];
+          if(this.userList[e].faceurl) {
+            this.userList[e].uid = e;
+            return this.userList[e];
+          } else {
+            return {
+              nickname: '测试数据',
+              faceurl: 'https://img.wdstatic.cn/imdemo/1.png',
+              uid: e
+            }
+          }
         })
         .sort((a, b) => a.nickname.toUpperCase() < b.nickname.toUpperCase() ? -1 : 1 );
     }

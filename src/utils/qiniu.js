@@ -39,7 +39,6 @@ export function initImageUpload(wdBoard, uptoken) {
     var imgUploader = Qiniu.uploader({
       runtimes: 'html5,flash,html4', //上传模式,依次退化
       browse_button: 'Image', //上传选择的点选按钮，**必需**
-      // uptoken_url: 'http://wildboard.wilddogapp.com/uptoken', //若未指定uptoken_url,则必须指定 uptoken ,uptoken由其他程序生成
       uptoken: uptoken, //若未指定uptoken_url,则必须指定 uptoken ,uptoken由其他程序生成
       domain: config.qiniu.domain, //bucket 域名，下载资源时用到，**必需**
       get_new_uptoken: false, //设置上传文件的时候是否每次都重新获取新的token
@@ -86,7 +85,6 @@ export function initImageUpload(wdBoard, uptoken) {
     var imgUploader = Qiniu.uploader({
       runtimes: 'html5,flash,html4', //上传模式,依次退化
       browse_button: 'Image', //上传选择的点选按钮，**必需**
-      // uptoken_url: 'http://wildboard.wilddogapp.com/uptoken', //若未指定uptoken_url,则必须指定 uptoken ,uptoken由其他程序生成
       uptoken: uptoken, //若未指定uptoken_url,则必须指定 uptoken ,uptoken由其他程序生成
       domain: config.qiniu.domain, //bucket 域名，下载资源时用到，**必需**
       get_new_uptoken: false, //设置上传文件的时候是否每次都重新获取新的token
@@ -136,4 +134,62 @@ export function initImageUpload(wdBoard, uptoken) {
       }
     });
   }
+}
+
+export function uploadClient(params) {
+
+  // 上传课件
+
+  if (navigator.userAgent.indexOf('HUAWEI') != -1 || navigator.userAgent.indexOf('XiaoMi') != -1) {
+    var uploader = new plupload.Uploader({
+      runtimes: 'html5,flash,silverlight,html4',
+      browse_button: 'officeUpload',
+      // container: 'container',
+      rename: true,
+      // url : '../upload.php',
+      url: config.qiniu.uploaderUrl,
+
+      flash_swf_url: 'js/plupload/Moxie.swf', //引入flash,相对路径
+    })
+  } else {
+    var uploader = new plupload.Uploader({
+      runtimes: 'html5,flash,silverlight,html4',
+      browse_button: 'officeUpload',
+      // container: 'container',
+      rename: true,
+      // url : '../upload.php',
+      url: config.qiniu.uploaderUrl,
+
+      flash_swf_url: 'js/plupload/Moxie.swf', //引入flash,相对路径
+      filters: [{
+        title: "office",
+        extensions: "pdf,doc,docx,ppt,pptx,pptm"
+      }],
+    })
+  }
+
+  uploader.init();
+
+
+  console.log(uploader);
+  uploader.bind('FilesAdded', function (uploader, files) {
+    console.log('FilesAdded!', files);
+    uploader.start();
+    //每个事件监听函数都会传入一些很有用的参数，
+    //我们可以利用这些参数提供的信息来做比如更新UI，提示上传进度等操作
+  });
+
+  uploader.bind('UploadProgress', function (uploader, file) {
+    console.log('Progress:', file.percent, "%");
+    //每个事件监听函数都会传入一些很有用的参数，
+    //我们可以利用这些参数提供的信息来做比如更新UI，提示上传进度等操作
+  });
+
+  uploader.bind('Error', function (uploader, err) {
+    console.error('Error:', err);
+    //每个事件监听函数都会传入一些很有用的参数，
+    //我们可以利用这些参数提供的信息来做比如更新UI，提示上传进度等操作
+  });
+
+  return uploader;
 }

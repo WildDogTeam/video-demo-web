@@ -48,7 +48,7 @@
           <div class="tool">
             <ul class="tool-bar">
               <li class="item" v-for=" item in toolBar" :key="item.type" @click="addToolListener(item)" :class="{ 'current': item.active }"><i class="icon" :class="item.class"></i></li>
-              <input ref="Image" type="file" id="Image">
+              <input ref="Image" type="file" id="Image" accept="image/png,image/gif,image/jpeg">
             </ul>
             <div class="tool-style" :class="{ 'open-style': openStyle }">
               <ul class="stroke-size-div" v-if="isStroke">
@@ -65,6 +65,52 @@
               </ul>
             </div>
           </div>
+              <div class="flie-upload">
+                <ul class="upload-head">
+                  <li class="head-item" :class="{'current-head': !document.currentTab}" @click="document.currentTab = false">文档</li>
+                  <li class="head-item" :class="{'current-head': document.currentTab}" @click="document.currentTab = true">音视频</li>
+                  <li></li>
+                </ul>
+                <div class="upload-content">
+                  <div class="documents" v-if="!document.currentTab">
+                    <ul class="content-item">
+                      <li class="upload-input">
+                        <div class="file file-button">上传</div>
+                        <!-- <input type="file" class="file-input" id="officeUpload"> -->
+                        <button id="officeUpload" class="file-input">上传文件</button>
+                        <div class="file-info"><i></i>支持上传pdf、doc、docx、ppt、pptx、pptm</div>
+                      </li>
+                      <li class="upload-title">
+                          <div class="file-div">文件名</div>
+                          <div class="file-div">大小</div>
+                          <div class="file-div">上传时间</div>
+                          <div class="file-div">操作</div>
+                      </li>
+                      <li v-for="(item, index) in document.officeFiles" :key="index" class="upload-title-content">
+                        <div class="file-div file-name">{{item.fileName | splitJoin}}</div>
+                        <div class="file-div size">{{item.size | readablizeBytes}}</div>
+                        <div class="file-div date">{{item.date | parseTime}}</div>
+                        <div class="file-div">
+                          <span class="file-ues">使用</span>
+                          <span class="file-del" @click="delOfficeFile('office', index)">删除</span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="videos" v-else>
+                    <ul class="content-item">
+                      <li class="upload-input">
+                        <div class="file-button">上传</div>
+                        <input type="file" class="file-input">
+                        <div class="file-info"><i></i>支持上传mp3、mp4</div>
+                      </li>
+                      <li class="upload-title">
+                          <div>文件名</div><div>大小</div><div>上传时间</div><div>操作</div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
         </div>
         <div class="chat">
           <div class="msg">
@@ -89,10 +135,14 @@ import room from "wilddog-video-room";
 import WildBoard from "wilddog-board";
 import dialog from "@/components/Dialog";
 import { realSysTime } from "@/utils";
+import { parseTime } from "@/filters";
 import { mapGetters } from "vuex";
-import { genToken, initImageUpload } from "@/utils/qiniu";
-require("@/assets/libs/qiniu.min");
-import config from 'config';
+import { genToken, initImageUpload, uploadClient } from "@/utils/qiniu";
+import "@/assets/libs/qiniu.min";
+import "@/assets/libs/plupload/js/moxie";
+import "@/assets/libs/plupload/js/plupload.full.min.js";
+// import "@/assets/libs/plupload/js/i18n/zh_CN";
+import config from "config";
 const wilddogVideo = base.wilddogVideo;
 wilddogVideo.regService("room", room);
 
@@ -109,9 +159,16 @@ export default {
       localStream: null,
       participants: [],
       showDialog: false,
+      document: {
+        currentTab: false,
+        officeFiles: {},
+        videoUpload: {}
+      },
       isMobile: /Mobile/i.test(navigator.userAgent),
       isFF: navigator.userAgent.indexOf("Firefox") > -1,
-      isSafari: navigator.userAgent.indexOf("Safari") > -1 && navigator.userAgent.indexOf("Chrome") < 1,
+      isSafari:
+        navigator.userAgent.indexOf("Safari") > -1 &&
+        navigator.userAgent.indexOf("Chrome") < 1,
       dialogOption: {
         width: "300px",
         height: "200px",
@@ -269,6 +326,7 @@ export default {
     this.userRef = wilddog.sync().ref(`room/${this.roomId}/users/`);
     this.boardRef = wilddog.sync().ref(`room/${this.roomId}/board`);
     this.chatRef = wilddog.sync().ref(`room/${this.roomId}/chat`);
+    this.documentRef = wilddog.sync().ref(`room/${this.roomId}/document`);
 
     if (!wilddogVideo.appId) {
       wilddogVideo.initialize({
@@ -283,7 +341,7 @@ export default {
     //创建一个同时有音频和视频的媒体流
     wilddogVideo
       .createLocalStream({
-        captureAudio: true,
+        captureAudio: false,
         captureVideo: true,
         dimension: this.dimension,
         maxFPS: 15
@@ -330,10 +388,25 @@ export default {
         if (msg) msg.scrollTop = msg.childNodes.length * 56;
       });
     });
+
+    //获取office列表
+    this.documentRef.on("value", snapshot => {
+      const data = snapshot.val() && snapshot.val().officeFiles;
+      for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+          const element = data[key];
+          if (element.date + 86400000 < Date.now()) {
+            this.documentRef.child(`officeFiles/${element}`).remove();
+            return;
+          }
+        }
+      }
+      this.document.officeFiles = data;
+    });
+
   },
   mounted() {
-    window.addEventListener("beforeunload", event => this.leaveRoom());
-
+    // window.addEventListener("beforeunload", event => this.leaveRoom());
     window.onresize = () => {
       this.wdBoard.setOption({
         width: this.$refs.board.clientWidth,
@@ -344,9 +417,32 @@ export default {
 
     this.updateTime();
     this.addUid();
+    const uploader = uploadClient();
+    uploader.bind("FileUploaded", (uploader, file, result) => {
+      var status = JSON.parse(result.response).status;
+      var results = JSON.parse(result.response).results;
+      if (status == "success") {
+        results.date = Date.now();
+        this.documentRef
+          .child("officeFiles")
+          .push(results)
+          .then(() => {
+            if (results.errors.length == 0) {
+              alert("上传成功！");
+            } else {
+              alert("上传成功！部分页码转码失败！");
+            }
+          })
+          .catch(err => {
+            alert("Sync 错误！" + err.message);
+          });
+      } else {
+        alert("上传失败！");
+      }
+    });
   },
   beforeDestroy() {
-    this.leaveRoom();
+    // this.leaveRoom();
   },
   methods: {
     // 复制
@@ -433,7 +529,10 @@ export default {
         e.target.parentElement.className += " current";
         return false;
       } else {
-        e.target.parentElement.className = e.target.parentElement.className.replace("current", "");
+        e.target.parentElement.className = e.target.parentElement.className.replace(
+          "current",
+          ""
+        );
         return true;
       }
     },
@@ -481,20 +580,24 @@ export default {
       this.userRef.child(this.uid).remove();
     },
     leaveRoom() {
-      this.localStream.close();
-      this.roomInstance.disconnect();
-      this.removeUid();
-      this.userRef.once('value',(snapshot)=>{
-        const data = snapshot.val()
-        if (!data) wilddog.sync().ref(`room/${this.roomId}`).remove();
-      })
-      // if (this.participants.length == 0) {
-      //   wilddog.sync().ref(`room/${this.roomId}`).remove();
-      // }
       window.onresize = null;
+      if (this.localStream) this.localStream.close();
+      try {
+        this.roomInstance.disconnect();
+      } catch (e) {
+        console.log(e);
+      }
+      this.removeUid();
+      this.userRef.once("value", snapshot => {
+        const data = snapshot.val();
+        if (!data)
+          wilddog
+            .sync()
+            .ref(`room/${this.roomId}`)
+            .remove();
+      });
     },
     addToolListener(tool) {
-      // console.log(this.wdBoard.getOptions());
       if (tool.type == "Undo") {
         this.wdBoard.undo();
         return false;
@@ -628,6 +731,9 @@ export default {
         });
         this.messageVal = "";
       }
+    },
+    delOfficeFile(type,key){
+      this.documentRef.child(`${type == 'office' ? 'officeFiles' : 'videoFiles'}/${key}`).remove();
     }
   },
   watch: {
@@ -661,7 +767,23 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["name", "token", "uid","dimension"])
+    ...mapGetters(["name", "token", "uid", "dimension"])
+  },
+  filters: {
+    splitJoin(e) {
+      return e
+        .split("-")
+        .slice(1)
+        .join("");
+    },
+    readablizeBytes(bytes) {
+      const s = ["Bytes", "KB", "MB", "GB", "TB", "PB"];
+      const e = Math.floor(Math.log(bytes) / Math.log(1024));
+      return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + " " + s[e];
+    },
+    parseTime(time) {
+      return parseTime(time, "{y}/{m}/{d} {h}:{i}:{s}");
+    }
   }
 };
 </script>
@@ -745,11 +867,11 @@ export default {
           background-color: #242424;
         }
       }
-      .icon-6{
+      .icon-6 {
         margin-left: 5px;
         font-size: 28px;
       }
-      .icon--4{
+      .icon--4 {
         margin-left: 7px;
       }
       .icon-current {
@@ -780,9 +902,9 @@ export default {
           min-height: 5px;
           min-width: 5px;
           border-radius: 20px;
-          border: 1px solid rgba(247, 250, 255, .3);
+          border: 1px solid rgba(247, 250, 255, 0.3);
           border-radius: 5px;
-          background-color: rgba(247, 250, 255, .3);
+          background-color: rgba(247, 250, 255, 0.3);
         }
         .item {
           position: relative;
@@ -1020,6 +1142,147 @@ export default {
       .open-style {
         top: -120px;
       }
+      .flie-upload {
+        width: 800px;
+        height: 600px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        .upload-head {
+          height: 60px;
+          background-color: #3d424e;
+          border-top-left-radius: 10px;
+          border-top-right-radius: 10px;
+          .head-item {
+            float: left;
+            height: 100%;
+            line-height: 3;
+            font-size: 18px;
+            padding: 0 20px;
+            cursor: pointer;
+            &.current-head {
+              border-bottom: 5px solid #66afff;
+            }
+          }
+        }
+        .upload-content {
+          border-bottom-left-radius: 10px;
+          border-bottom-right-radius: 10px;
+          background-color: #ffffff;
+          height: 550px;
+          overflow-y: auto;
+          &::-webkit-scrollbar {
+            width: 5px;
+            height: 100%;
+            border-radius: 5px;
+            background-color: transparent;
+          }
+          &::-webkit-scrollbar-thumb {
+            min-height: 5px;
+            min-width: 5px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            background-color: #dddddd;
+          }
+          .content-item {
+            li {
+              height: 50px;
+              padding-left: 17px;
+              &:nth-child(odd) {
+                background-color: #f9fafe;
+              }
+            }
+            .upload-input {
+              position: relative;
+              .file-input {
+                position: absolute;
+                top: 0;
+                cursor: pointer;
+                width: 80px;
+                height: 100%;
+                opacity: 0;
+              }
+              .file-button {
+                position: absolute;
+                top: 7px;
+                width: 80px;
+                height: 35px;
+                line-height: 35px;
+                padding-right: 20px;
+                text-align: right;
+                background-color: #66afff;
+                border-radius: 5px;
+              }
+              .file-info {
+                color: #919193;
+                height: 100%;
+                font-size: 14px;
+                line-height: 3.5;
+                padding-left: 120px;
+              }
+            }
+            .upload-title {
+              font-size: 13px;
+              .file-div {
+                color: #666;
+                float: left;
+                height: 50px;
+                line-height: 50px;
+                &:nth-child(1) {
+                  width: 250px;
+                  padding-left: 20px;
+                }
+                &:nth-child(2) {
+                  width: 85px;
+                }
+                &:nth-child(3) {
+                  width: 280px;
+                }
+                &:nth-child(4) {
+                  width: 150px;
+                }
+              }
+            }
+            .upload-title-content {
+              border: 1px solid transparent;
+              &:hover {
+                background-color: #eaf5ff;
+                border: 1px solid #d5eaff;
+              }
+              color: #666;
+              .file-div {
+                float: left;
+                height: 50px;
+                line-height: 50px;
+                font-size: 13px;
+              }
+              .file-name {
+                width: 250px;
+              }
+              .size {
+                width: 85px;
+              }
+              .date {
+                width: 280px;
+              }
+              .file-ues {
+                cursor: pointer;
+                margin-right: 20px;
+                &:hover {
+                  color: #5da6f5;
+                }
+              }
+              .file-del {
+                cursor: pointer;
+                &:hover {
+                  color: red;
+                }
+              }
+            }
+          }
+        }
+      }
     }
     .current {
       border: 2px solid #242424 !important;
@@ -1123,7 +1386,7 @@ export default {
           overflow: hidden;
           white-space: nowrap;
           font-size: 14px;
-          &:hover{
+          &:hover {
             background: #4897ed;
           }
         }

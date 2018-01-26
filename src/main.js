@@ -6,8 +6,13 @@ import router from './router'
 import store from './store'
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
+import * as filters from './filters';
 
 Vue.config.productionTip = false
+
+Object.keys(filters).forEach(key => {
+  Vue.filter(key, filters[key])
+});
 
 const whiteList = ['/login'];
 router.beforeEach((to, from, next) => {

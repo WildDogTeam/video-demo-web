@@ -33,3 +33,44 @@ export function parseTime(time, cFormat) {
   });
   return time_str;
 }
+
+export function splitJoin(e) {
+  return e.split("-").slice(1).join("");
+}
+
+export function fileType(e) {
+  let type = e.split(".")[e.split(".").length - 1];
+  switch (type) {
+    case "pdf":
+      type = "pdf";
+      break;
+    case "doc":
+      type = "doc";
+      break;
+    case "docx":
+      type = "doc";
+      break;
+    case "ppt":
+      type = "ppt";
+      break;
+    case "pptx":
+      type = "ppt";
+      break;
+    case "pptm":
+      type = "ppt";
+      break;
+    default:
+      break;
+  }
+  return type;
+}
+
+export function readablizeBytes(bytes) {
+  const s = ["Bytes", "KB", "MB", "GB", "TB", "PB"];
+  const e = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + " " + s[e];
+}
+
+export function parseTimes(time) {
+  return parseTime(time, "{y}/{m}/{d} {h}:{i}:{s}");
+}

@@ -72,37 +72,8 @@
               <li class="head-close" @click="document.status = false"><i class="icon-25"></i></li>
             </ul>
             <div class="upload-content">
-              <div class="documents" v-if="!document.currentTab">
-                <ul class="content-item">
-                  <li class="upload-input">
-                    <div class="file file-button">上传</div>
-                    <button id="officeUpload" class="file-input">上传文件</button>
-                    <div class="file-info"><i></i>支持上传pdf、doc、docx、ppt、pptx、pptm</div>
-                  </li>
-                  <li class="upload-title">
-                      <div class="file-div">文件名</div>
-                      <div class="file-div">大小</div>
-                      <div class="file-div">上传时间</div>
-                      <div class="file-div">操作</div>
-                  </li>
-                  <li v-for="(item, key, index) in document.officeFiles.fileLists" :key="key" class="upload-title-content">
-                    <div class="file-div">{{ index + 1 }}</div>
-                    <div class="file-type-icon" :class="item.fileName | fileType"></div>
-                    <div class="file-div file-name">{{item.fileName | splitJoin}}</div>
-                    <div class="file-div size">{{item.size | readablizeBytes}}</div>
-                    <div class="file-div date">{{item.date | parseTime}}</div>
-                    <div class="file-div">
-                      <span class="file-ues" @click="useOfficeFile(key)">使用</span>
-                      <span class="file-del" @click="delOfficeFile(key)">删除</span>
-                    </div>
-                  </li>
-                  <div v-show="document.officeFiles.isEmpty" class="empty">
-                    <img src="../../assets/images/empty.png" alt="">
-                    <div class="text">暂无文档</div>
-                  </div>
-                </ul>
-              </div>
-              <div class="videos" v-else>
+              <upload-office v-show="!document.currentTab" :upload-office-data="document.officeFiles"></upload-office>
+              <!-- <div class="videos" v-else>
                 <ul class="content-item">
                   <li class="upload-input">
                     <div class="file-button">上传</div>
@@ -113,23 +84,11 @@
                       <div>文件名</div><div>大小</div><div>上传时间</div><div>操作</div>
                   </li>
                 </ul>
-              </div>
-              <div class="loader" v-show="document.loading">
-                <div class="ball-spin-fade-loader">
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                </div>
-              </div>
+              </div> -->
+              <v-loading v-show="document.loading"></v-loading>
             </div>
           </div>
           <div v-for="(item, key) in currentFile" class="officefile" :key="key">
-            <!-- {{key}} - {{index}} - {{value}} -->
             <div class="officefile-head">
               <div class="officefile-title">{{item.fileName | splitJoin}}</div>
               <div class="head-close" @click="document.status = false"><i class="icon-25"></i></div>
@@ -164,6 +123,8 @@ import base from "wilddog-video-base";
 import room from "wilddog-video-room";
 import WildBoard from "wilddog-board";
 import dialog from "@/components/Dialog";
+import loading from "@/components/Loading";
+import uploadOffice from "./uploadOffice";
 import { realSysTime } from "@/utils";
 import { parseTime } from "@/filters";
 import { mapGetters } from "vuex";
@@ -178,7 +139,9 @@ wilddogVideo.regService("room", room);
 export default {
   name: "meeting",
   components: {
-    "v-dialog": dialog
+    "v-dialog": dialog,
+    "v-loading": loading,
+    "upload-office": uploadOffice
   },
   data() {
     return {
@@ -199,7 +162,7 @@ export default {
         videoFiles: {}
       },
       currentFile: {
-        "-L3hDwaxJrcH0KCBWVPw":{"date":1516882348369,"fileName":"1516882345678-周一.docx","info":{"Author":"Ihoey Hou（侯毅）","CreationDate":"Thu Jan 25 20:12:26 2018","Creator":"Writer","Encrypted":"no","File size":"19308 bytes","Form":"none","JavaScript":"no","Optimized":"no","PDF version":"1.4","Page rot":"0","Page size":"595 x 842 pts (A4)","Pages":"2","Producer":"LibreOffice 5.0","Suspects":"no","Tagged":"no","UserProperties":"no"},"size":28083,"urls":[{"url":"https://whiteboard-img.wdstatic.cn/cacheFiles/docx/1516882345678-周一.docx/1516882345678-周一-0.png"},{"url":"https://whiteboard-img.wdstatic.cn/cacheFiles/docx/1516882345678-周一.docx/1516882345678-周一-1.png"}]}
+        
       },
       isMobile: /Mobile/i.test(navigator.userAgent),
       isFF: navigator.userAgent.indexOf("Firefox") > -1,
@@ -374,18 +337,18 @@ export default {
 
     this.roomInstance = wilddogVideo.room(this.roomId);
 
-    //创建一个同时有音频和视频的媒体流
-    // wilddogVideo
-    //   .createLocalStream({
-    //     captureAudio: false,
-    //     captureVideo: true,
-    //     dimension: this.dimension,
-    //     maxFPS: 15
-    //   })
-    //   .then(localStream => {
-    //     this.localStream = localStream;
-    //     this.localStream.attach(this.$refs.localStream);
-    //   });
+    // 创建一个同时有音频和视频的媒体流
+    wilddogVideo
+      .createLocalStream({
+        captureAudio: false,
+        captureVideo: true,
+        dimension: this.dimension,
+        maxFPS: 15
+      })
+      .then(localStream => {
+        this.localStream = localStream;
+        this.localStream.attach(this.$refs.localStream);
+      });
 
     this.$nextTick(() => {
       let boardConfig = {
@@ -426,7 +389,7 @@ export default {
     });
   },
   mounted() {
-    // window.addEventListener("beforeunload", event => this.leaveRoom());
+    window.addEventListener("beforeunload", event => this.leaveRoom());
     window.onresize = () => {
       this.wdBoard.setOption({
         width: this.$refs.board.clientWidth,
@@ -766,27 +729,6 @@ export default {
         this.messageVal = "";
       }
     },
-    useOfficeFile(key){
-      this.document.status = false      
-      var data = this.document.officeFiles.fileLists[key];
-      this.currentFile[key] = data
-      this.boardRef.child(`currentFile`).push(data)
-    },
-    delOfficeFile(key) {
-      this.dialogOption.text = "确认删除所选文档";
-      this.showDialog = true;
-      this.$refs.dialog
-        .confirm()
-        .then(() => {
-          this.documentRef
-            .child(`officeFiles}/${key}`)
-            .remove();
-          this.showDialog = false;
-        })
-        .catch(() => {
-          this.showDialog = false;
-        });
-    },
     openDocument() {
       this.document.status = true;
       //获取office列表
@@ -838,48 +780,6 @@ export default {
   },
   computed: {
     ...mapGetters(["name", "token", "uid", "dimension"]),
-  },
-  filters: {
-    splitJoin(e) {
-      return e
-        .split("-")
-        .slice(1)
-        .join("");
-    },
-    fileType(e) {
-      let type = e.split(".")[e.split(".").length - 1];
-      switch (type) {
-        case "pdf":
-          type = "pdf";
-          break;
-        case "doc":
-          type = "doc";
-          break;
-        case "docx":
-          type = "doc";
-          break;
-        case "ppt":
-          type = "ppt";
-          break;
-        case "pptx":
-          type = "ppt";
-          break;
-        case "pptm":
-          type = "ppt";
-          break;
-        default:
-          break;
-      }
-      return type;
-    },
-    readablizeBytes(bytes) {
-      const s = ["Bytes", "KB", "MB", "GB", "TB", "PB"];
-      const e = Math.floor(Math.log(bytes) / Math.log(1024));
-      return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + " " + s[e];
-    },
-    parseTime(time) {
-      return parseTime(time, "{y}/{m}/{d} {h}:{i}:{s}");
-    }
   }
 };
 </script>
@@ -1576,78 +1476,6 @@ export default {
         }
       }
     }
-  }
-  .loader {
-    width: 100px;
-    height: 100px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-  @keyframes ball-spin-fade-loader {
-    50% {
-      opacity: 0.3;
-      transform: scale(0.4);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  .ball-spin-fade-loader {
-    position: relative;
-    top: 50px;
-    left: 40px;
-  }
-  .ball-spin-fade-loader > div:nth-child(1) {
-    top: 25px;
-    left: 0;
-    animation: ball-spin-fade-loader 1s -0.96s infinite linear;
-  }
-  .ball-spin-fade-loader > div:nth-child(2) {
-    top: 17.04545px;
-    left: 17.04545px;
-    animation: ball-spin-fade-loader 1s -0.84s infinite linear;
-  }
-  .ball-spin-fade-loader > div:nth-child(3) {
-    top: 0;
-    left: 25px;
-    animation: ball-spin-fade-loader 1s -0.72s infinite linear;
-  }
-  .ball-spin-fade-loader > div:nth-child(4) {
-    top: -17.04545px;
-    left: 17.04545px;
-    animation: ball-spin-fade-loader 1s -0.6s infinite linear;
-  }
-  .ball-spin-fade-loader > div:nth-child(5) {
-    top: -25px;
-    left: 0;
-    animation: ball-spin-fade-loader 1s -0.48s infinite linear;
-  }
-  .ball-spin-fade-loader > div:nth-child(6) {
-    top: -17.04545px;
-    left: -17.04545px;
-    animation: ball-spin-fade-loader 1s -0.36s infinite linear;
-  }
-  .ball-spin-fade-loader > div:nth-child(7) {
-    top: 0;
-    left: -25px;
-    animation: ball-spin-fade-loader 1s -0.24s infinite linear;
-  }
-  .ball-spin-fade-loader > div:nth-child(8) {
-    top: 17.04545px;
-    left: -17.04545px;
-    animation: ball-spin-fade-loader 1s -0.12s infinite linear;
-  }
-  .ball-spin-fade-loader > div {
-    background-color: rgb(67, 61, 61);
-    width: 15px;
-    height: 15px;
-    border-radius: 100%;
-    margin: 2px;
-    animation-fill-mode: both;
-    position: absolute;
   }
 }
 </style>

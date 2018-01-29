@@ -10,10 +10,10 @@
       </ul>
     </div>
     <ul class="features clearfix">
-      <li class="full-item"><i class="icon icon--4" @click="sorry"></i></li>
+      <li class="full-item"><i class="icon icon--4" @click="openDocument"></i></li>
       <li class="full-item"><i class="icon icon--3" @click="sorry"></i></li>
       <li class="full-item"><i class="icon icon--7" @click="sorry"></i></li>
-      <li class="full-item"><i class="icon icon-6" @click="sorry"></i></li>
+      <!-- <li class="full-item"><i class="icon icon-6" @click="sorry"></i></li> -->
     </ul>
     <div class="content">
       <div class="video-box">
@@ -29,11 +29,10 @@
               </div>
             </div>
           </li>
-          <li class="item" v-for='(item, index) in participants' :key="item.id">
+          <li class="item" v-for='(item, index) in participants' :key="item.streamId">
             <video autoplay="autoplay" ref="remoteStream" :controls="isMobile && (isFF || isSafari)"></video>
             <div class="controls">
-              <!-- <span class="name" ref="name">{{users[item.streamOwners[0].userId].name}}</span> -->
-              <span class="name" ref="name">May</span>
+              <span class="name" ref="name">{{item.attributes.name || 'May'}}</span>
               <div class="wrap clearfix">
                 <span class="media" @click="enableAudio"><i class="icon-" :data-stream="index"></i></span>
                 <span class="video" @click="enableVideo"><i class="icon-" :data-stream="index"></i></span>
@@ -65,52 +64,34 @@
               </ul>
             </div>
           </div>
-              <div class="flie-upload">
-                <ul class="upload-head">
-                  <li class="head-item" :class="{'current-head': !document.currentTab}" @click="document.currentTab = false">文档</li>
-                  <li class="head-item" :class="{'current-head': document.currentTab}" @click="document.currentTab = true">音视频</li>
-                  <li></li>
-                </ul>
-                <div class="upload-content">
-                  <div class="documents" v-if="!document.currentTab">
-                    <ul class="content-item">
-                      <li class="upload-input">
-                        <div class="file file-button">上传</div>
-                        <!-- <input type="file" class="file-input" id="officeUpload"> -->
-                        <button id="officeUpload" class="file-input">上传文件</button>
-                        <div class="file-info"><i></i>支持上传pdf、doc、docx、ppt、pptx、pptm</div>
-                      </li>
-                      <li class="upload-title">
-                          <div class="file-div">文件名</div>
-                          <div class="file-div">大小</div>
-                          <div class="file-div">上传时间</div>
-                          <div class="file-div">操作</div>
-                      </li>
-                      <li v-for="(item, index) in document.officeFiles" :key="index" class="upload-title-content">
-                        <div class="file-div file-name">{{item.fileName | splitJoin}}</div>
-                        <div class="file-div size">{{item.size | readablizeBytes}}</div>
-                        <div class="file-div date">{{item.date | parseTime}}</div>
-                        <div class="file-div">
-                          <span class="file-ues">使用</span>
-                          <span class="file-del" @click="delOfficeFile('office', index)">删除</span>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                  <div class="videos" v-else>
-                    <ul class="content-item">
-                      <li class="upload-input">
-                        <div class="file-button">上传</div>
-                        <input type="file" class="file-input">
-                        <div class="file-info"><i></i>支持上传mp3、mp4</div>
-                      </li>
-                      <li class="upload-title">
-                          <div>文件名</div><div>大小</div><div>上传时间</div><div>操作</div>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+          <div class="flie-upload" v-show="document.status">
+            <ul class="upload-head">
+              <li class="head-item" :class="{'current-head': !document.currentTab}" @click="document.currentTab = false">文档</li>
+              <li class="head-item" :class="{'current-head': document.currentTab}" @click="document.currentTab = true">音视频</li>
+              <li class="head-close" @click="document.status = false"><i class="icon-25"></i></li>
+            </ul>
+            <div class="upload-content">
+              <upload-videos v-show="document.currentTab" :upload-video-data='document.videoFiles' :room-id='roomId' @operateVideoSuccess='operateVideoSuccess' @useVideoSuccess='useVideoSuccess'></upload-videos>
+              <v-loading v-show="document.loading" @waitingLoading="waitingLoading"></v-loading>
+            </div>
+          </div>
+          <div class="insert-video" v-show="document.videoFiles.externalInputs.length !== 0">
+            <div class="video-header"> <span class="title">{{  document.videoFiles.video.name }} </span>
+              <!-- <span class="close"><i class="icon-25"></i></span> -->
+            </div>
+            <video autoplay="autoplay" ref="insertStream"></video>
+            <div class="video-controls">
+              <div class="funcs" v-show='document.videoFiles.video.funcsShow'>
+                <span class="func pause" @click="controlInsertVideo('pause')" v-show='document.videoFiles.video.play'><i class="icon icon--19"></i></span>
+                <span class="func continue" @click="controlInsertVideo('continue')" v-show='!document.videoFiles.video.play'><i class="icon icon--20"></i></span>
+                <span class="func replay" @click="controlInsertVideo('replay')"><i class="icon icon--18"></i></span>
+                <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span>
               </div>
+              <div class="time">
+                00:00:00/00:00:00
+              </div>
+            </div>
+          </div>
         </div>
         <div class="chat">
           <div class="msg">
@@ -130,26 +111,34 @@
   </div>
 </template>
 <script>
+import { mapGetters } from "vuex";
+
 import base from "wilddog-video-base";
 import room from "wilddog-video-room";
 import WildBoard from "wilddog-board";
 import dialog from "@/components/Dialog";
+import loading from "@/components/Loading";
+import uploadVideos from "./uploadVideos";
 import { realSysTime } from "@/utils";
-import { parseTime } from "@/filters";
-import { mapGetters } from "vuex";
+import { getList, controlFile } from 'api/uploadVideo';
+
 import { genToken, initImageUpload, uploadClient } from "@/utils/qiniu";
 import "@/assets/libs/qiniu.min";
 import "@/assets/libs/plupload/js/moxie";
 import "@/assets/libs/plupload/js/plupload.full.min.js";
-// import "@/assets/libs/plupload/js/i18n/zh_CN";
+import "@/assets/libs/plupload/js/i18n/zh_CN";
 import config from "config";
+import './index.scss'
+
 const wilddogVideo = base.wilddogVideo;
 wilddogVideo.regService("room", room);
 
 export default {
   name: "meeting",
   components: {
-    "v-dialog": dialog
+    "v-dialog": dialog,
+    'upload-videos': uploadVideos,
+    'v-loading': loading
   },
   data() {
     return {
@@ -160,15 +149,24 @@ export default {
       participants: [],
       showDialog: false,
       document: {
+        status: false,
+        loading: false,
         currentTab: false,
         officeFiles: {},
-        videoUpload: {}
+        videoFiles: {
+          isEmpty: true,
+          list: [],
+          externalInputs: [],
+          video: {
+            name: '',
+            play: true,
+            funcsShow: false
+          }
+        }
       },
       isMobile: /Mobile/i.test(navigator.userAgent),
       isFF: navigator.userAgent.indexOf("Firefox") > -1,
-      isSafari:
-        navigator.userAgent.indexOf("Safari") > -1 &&
-        navigator.userAgent.indexOf("Chrome") < 1,
+      isSafari: navigator.userAgent.indexOf("Safari") > -1 && navigator.userAgent.indexOf("Chrome") < 1,
       dialogOption: {
         width: "300px",
         height: "200px",
@@ -178,8 +176,7 @@ export default {
         confirmButtonText: "确定"
       },
       users: null,
-      strokeColor: [
-        {
+      strokeColor: [{
           color: "rgb(252,61,57)",
           active: true
         },
@@ -204,8 +201,7 @@ export default {
           active: false
         }
       ],
-      strokeWidth: [
-        {
+      strokeWidth: [{
           style: 0.2,
           width: 2,
           active: true
@@ -221,8 +217,7 @@ export default {
           active: false
         }
       ],
-      fontSize: [
-        {
+      fontSize: [{
           style: 18,
           width: 18,
           active: true
@@ -238,8 +233,7 @@ export default {
           active: false
         }
       ],
-      toolBar: [
-        {
+      toolBar: [{
           active: false,
           type: "Pen",
           color: "rgb(252,61,57)",
@@ -318,6 +312,8 @@ export default {
     };
   },
   created() {
+    this.getVideoList()
+
     let roomName = location.hash.split("?")[1];
     roomName = roomName.replace("roomId=", "").split("&")[0];
     this.roomId = decodeURI(roomName);
@@ -348,6 +344,7 @@ export default {
       })
       .then(localStream => {
         this.localStream = localStream;
+        this.localStream.setAttributes({ 'isExternalInput': false, 'name': this.name });
         this.localStream.attach(this.$refs.localStream);
       });
 
@@ -406,7 +403,6 @@ export default {
 
   },
   mounted() {
-    // window.addEventListener("beforeunload", event => this.leaveRoom());
     window.onresize = () => {
       this.wdBoard.setOption({
         width: this.$refs.board.clientWidth,
@@ -418,6 +414,7 @@ export default {
     this.updateTime();
     this.addUid();
     const uploader = uploadClient();
+
     uploader.bind("FileUploaded", (uploader, file, result) => {
       var status = JSON.parse(result.response).status;
       var results = JSON.parse(result.response).results;
@@ -445,6 +442,15 @@ export default {
     // this.leaveRoom();
   },
   methods: {
+    getVideoList() {
+      this.document.loading = true
+      getList(config.wd.videoAppid, this.uid, this.token).then(response => {
+        this.document.loading = false
+        let data = response.data
+        this.document.videoFiles.list = data
+        this.document.videoFiles.isEmpty = data.length == 0 ? true : false
+      })
+    },
     // 复制
     copy(e) {
       if (window.getSelection) {
@@ -536,10 +542,31 @@ export default {
         return true;
       }
     },
+
     _addStream(stream) {
-      this.participants.push(stream);
-      this._displayStreams(this.participants);
+      if (stream.attributes.isExternalInput == false) {
+        this.participants.push(stream);
+        this._displayStreams(this.participants);
+      } else {
+        this.document.status = false;
+
+        if (this.document.videoFiles.externalInputs.length == 0) {
+          this.document.videoFiles.externalInputs.push(stream);
+        } else {
+          this.document.videoFiles.externalInputs.splice(0, 1, stream);
+        }
+
+        //插播流不是自己的，底部的功能栏去掉
+        if (this.document.videoFiles.externalInputs[0].streamOwners[0].userId == this.uid) {
+          this.document.videoFiles.video.funcsShow = true
+        }
+
+        this.$nextTick(() => {
+          stream.attach(this.$refs.insertStream)
+        });
+      }
     },
+
     _removeStream(stream) {
       this.participants.map((element, index) => {
         if (element.streamId == stream.streamId) {
@@ -547,7 +574,14 @@ export default {
           this._displayStreams(this.participants);
         }
       });
+
+      if (this.document.videoFiles.externalInputs.length !== 0 && stream.streamId == this.document.videoFiles.externalInputs[0].streamId) {
+        this.document.videoFiles.externalInputs = []
+
+      }
+
     },
+
     _displayStreams(participant) {
       for (let i = 0; i < participant.length; i++) {
         this.$nextTick(() => {
@@ -566,9 +600,9 @@ export default {
           const date = new Date().getTime();
           setInterval(() => {
             this.time =
-              snapshot.val() > date
-                ? realSysTime(date)
-                : realSysTime(snapshot.val());
+              snapshot.val() > date ?
+              realSysTime(date) :
+              realSysTime(snapshot.val());
           }, 1000);
         }
       });
@@ -592,9 +626,9 @@ export default {
         const data = snapshot.val();
         if (!data)
           wilddog
-            .sync()
-            .ref(`room/${this.roomId}`)
-            .remove();
+          .sync()
+          .ref(`room/${this.roomId}`)
+          .remove();
       });
     },
     addToolListener(tool) {
@@ -732,9 +766,39 @@ export default {
         this.messageVal = "";
       }
     },
-    delOfficeFile(type,key){
+    delOfficeFile(type, key) {
       this.documentRef.child(`${type == 'office' ? 'officeFiles' : 'videoFiles'}/${key}`).remove();
-    }
+    },
+    operateVideoSuccess() {
+      this.getVideoList()
+    },
+    useVideoSuccess() {
+      this.document.status = false
+    },
+    openDocument() {
+      this.document.status = true;
+    },
+    controlInsertVideo() {
+      const arg = arguments[0]
+      controlFile(config.wd.videoAppid, this.roomId, arg, this.document.videoFiles.externalInputs[0].streamId, this.token).then(response => {
+        let data = response.data
+        switch (arg) {
+          case 'stop':
+            this.document.videoFiles.externalInputs = []
+            break;
+          case 'pause':
+            this.document.videoFiles.video.play = false
+            break;
+          case 'continue':
+            this.document.videoFiles.video.play = true
+          default:
+            break;
+        }
+      })
+    },
+    waitingLoading() {
+
+    },
   },
   watch: {
     localStream: function(argument) {
@@ -744,9 +808,7 @@ export default {
         this.roomInstance.publish(this.localStream, () => {
           console.log("publish success");
         });
-
         this.roomInstance.on("stream_added", stream => {
-          console.log("stream_added");
           this.roomInstance.subscribe(stream, err => {
             if (err == null) {
               console.log("subscribe success");
@@ -755,7 +817,6 @@ export default {
         });
 
         this.roomInstance.on("stream_received", stream => {
-          console.log("stream_received");
           this._addStream(stream);
         });
 
@@ -768,630 +829,11 @@ export default {
   },
   computed: {
     ...mapGetters(["name", "token", "uid", "dimension"])
-  },
-  filters: {
-    splitJoin(e) {
-      return e
-        .split("-")
-        .slice(1)
-        .join("");
-    },
-    readablizeBytes(bytes) {
-      const s = ["Bytes", "KB", "MB", "GB", "TB", "PB"];
-      const e = Math.floor(Math.log(bytes) / Math.log(1024));
-      return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + " " + s[e];
-    },
-    parseTime(time) {
-      return parseTime(time, "{y}/{m}/{d} {h}:{i}:{s}");
-    }
   }
 };
+
 </script>
 <style rel="stylesheet/scss" lang="scss">
-.meeting {
-  width: 100%;
-  min-height: 100%;
-  color: #ffffff;
-  background-color: #1f2229;
-  background-image: url("../../assets/images/room-bg.png");
-  position: relative;
-  .head {
-    position: relative;
-    width: 100%;
-    height: 52px;
-    padding: 0 23px;
-    line-height: 52px;
-    color: #ffffff;
-    background-color: #2b2f38;
-    white-space: nowrap;
-    .roomId {
-      font-size: 18px;
-      float: left;
-      max-width: 300px;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-    .time {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 16px;
-      i {
-        color: #b20e0e;
-      }
-    }
-    .right {
-      color: #ffffff;
-      float: right;
-      .item {
-        float: left;
-        cursor: pointer;
-        margin-left: 23px;
-        font-size: 16px;
-        position: relative;
-        .icon {
-          font-size: 20px;
-          position: absolute;
-          left: -25px;
-          top: 2px;
-        }
-      }
-    }
-  }
-  .features {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    z-index: 99;
-    width: 62px;
-    height: 260px;
-    transform: translateY(-50%);
-    background-color: #3c3c3c;
-    border-radius: 0 5px 5px 0;
-    .full-item {
-      padding: 10px 0;
-      height: calc(100%/4);
-      text-align: center;
-      font-size: 12px;
-      .icon {
-        display: block;
-        margin: 0 auto 5px;
-        width: 46px;
-        height: 46px;
-        line-height: 54px;
-        font-size: 30px;
-        border-radius: 8px;
-        cursor: pointer;
-        &:hover {
-          background-color: #242424;
-        }
-      }
-      .icon-6 {
-        margin-left: 5px;
-        font-size: 28px;
-      }
-      .icon--4 {
-        margin-left: 7px;
-      }
-      .icon-current {
-        background-color: #242424;
-      }
-    }
-  }
-  .content {
-    min-height: calc(100% - 52px);
-    .video-box {
-      width: 100%;
-      height: 180px;
-      overflow: hidden;
-      .inner {
-        height: 100%;
-        display: flex; // justify-content: center;
-        // align-items: center;
-        overflow-x: auto;
-        overflow-y: hidden;
-        margin: 0 auto;
-        background-color: rgba(43, 47, 56, 0.5);
-        &::-webkit-scrollbar {
-          width: 3px;
-          height: 3px;
-          background-color: #fcfcfc;
-        }
-        &::-webkit-scrollbar-thumb {
-          min-height: 5px;
-          min-width: 5px;
-          border-radius: 20px;
-          border: 1px solid rgba(247, 250, 255, 0.3);
-          border-radius: 5px;
-          background-color: rgba(247, 250, 255, 0.3);
-        }
-        .item {
-          position: relative;
-          float: left;
-          margin-right: 5px; // margin-bottom: 44px;
-          background-color: #000;
-          video {
-            width: 240px;
-            height: 180px;
-            background-color: #000;
-          }
-          &:last-child {
-            margin-right: 0;
-          }
-        }
-      }
-      .controls {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        height: 40px;
-        line-height: 40px;
-        background-color: rgba(33, 43, 50, 0.5);
-        padding: 0 5px;
-        .wrap {
-          float: right;
-          font-size: 25px;
-          height: 40px;
-          user-select: none;
-          span {
-            position: relative;
-            float: left;
-            height: 100%;
-            width: 30px;
-            cursor: pointer;
-            text-align: center;
-          }
-          .icon- {
-            width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-          }
-          .translate {
-            .icon- {
-              font-size: 17px;
-              &::before {
-                content: "q";
-              }
-            }
-          }
-          .translate.current {
-            .icon- {
-              &::before {
-                content: "q";
-              }
-            }
-          }
-          .media {
-            .icon- {
-              &::before {
-                content: "c";
-              }
-            }
-          }
-          .media.current {
-            .icon- {
-              &::before {
-                content: "b";
-              }
-            }
-          }
-          .video {
-            .icon- {
-              font-size: 17px;
-              margin-top: -2px;
-              &::before {
-                content: "o";
-              }
-            }
-          }
-          .video.current {
-            .icon- {
-              &::before {
-                content: "p";
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  .features-others {
-    height: calc(100vh - 232px);
-    display: flex;
-    .board {
-      height: 100%;
-      flex: 8;
-      background-color: #121b25;
-      position: relative;
-      .tool {
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%); // height: 120px;
-        width: 600px;
-        margin: 0 auto;
-      }
-      .tool-bar {
-        position: absolute;
-        bottom: 0;
-        background-color: #3c3c3c;
-        height: 65px;
-        padding: 7.5px 15px;
-        transition: 0.3s;
-        border-radius: 5px;
-        z-index: 9;
-        .item {
-          float: left;
-          width: 50px;
-          height: 50px;
-          line-height: 50px;
-          text-align: center;
-          margin-right: 15px;
-          cursor: pointer;
-          border-radius: 5px;
-          position: relative;
-          border: 2px solid transparent;
-          &:last-child {
-            margin-right: 0;
-          }
-          .icon {
-            font-size: 20px;
-          }
-          .icon-line {
-            &:after {
-              content: "/";
-            }
-          }
-          .icon-rect {
-            border-radius: 50%;
-          }
-          .icon-rect,
-          .icon-circle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            display: block;
-            width: 45%;
-            height: 45%;
-            border: 1px solid #fff;
-            transform: translate(-50%, -50%);
-          }
-          .icon-text {
-            font-size: 23px;
-            &:after {
-              content: "A";
-              font-style: normal;
-            }
-          }
-          .icon--6 {
-            display: block;
-            transform: scaleX(-1);
-          }
-          .icon-photo-1,
-          .icon--6,
-          .icon-30 {
-            position: relative;
-            top: 2px;
-          }
-        }
-        #Image {
-          position: absolute;
-          z-index: 1;
-          width: 50px;
-          height: 50px;
-          left: 275px;
-          opacity: 0;
-          cursor: pointer;
-        }
-      }
-      .tool-style {
-        position: absolute;
-        top: -60px;
-        height: 50px;
-        background-color: #5d5d5d;
-        border-radius: 3px;
-        transition: 0.3s;
-        .stroke-size-div,
-        .font-size-div,
-        .stroke-color-div {
-          float: left;
-          height: 100%;
-          padding: 10px 10px;
-        }
-        .stroke-size-div {
-          .icon {
-            display: block;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background-color: #fff;
-            border: 1px solid #fff;
-            box-shadow: 0px 0px 2px 2px;
-          }
-        }
-        .stroke-color-div {
-          position: relative;
-          .line {
-            position: absolute;
-            left: -3px;
-            display: inline-block;
-            width: 1px;
-            height: 30px;
-            background-color: #9e9e9e;
-          }
-        }
-        .item {
-          float: left;
-          width: 30px;
-          height: 30px;
-          line-height: 30px;
-          text-align: center;
-          margin-right: 10px;
-          border-radius: 3px;
-          font-weight: 300;
-          cursor: pointer;
-          border: 2px solid transparent;
-          user-select: none;
-          &:last-child {
-            margin-right: 0;
-          }
-        }
-      }
-      .open-style {
-        top: -120px;
-      }
-      .flie-upload {
-        width: 800px;
-        height: 600px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        .upload-head {
-          height: 60px;
-          background-color: #3d424e;
-          border-top-left-radius: 10px;
-          border-top-right-radius: 10px;
-          .head-item {
-            float: left;
-            height: 100%;
-            line-height: 3;
-            font-size: 18px;
-            padding: 0 20px;
-            cursor: pointer;
-            &.current-head {
-              border-bottom: 5px solid #66afff;
-            }
-          }
-        }
-        .upload-content {
-          border-bottom-left-radius: 10px;
-          border-bottom-right-radius: 10px;
-          background-color: #ffffff;
-          height: 550px;
-          overflow-y: auto;
-          &::-webkit-scrollbar {
-            width: 5px;
-            height: 100%;
-            border-radius: 5px;
-            background-color: transparent;
-          }
-          &::-webkit-scrollbar-thumb {
-            min-height: 5px;
-            min-width: 5px;
-            border: 1px solid #dddddd;
-            border-radius: 5px;
-            background-color: #dddddd;
-          }
-          .content-item {
-            li {
-              height: 50px;
-              padding-left: 17px;
-              &:nth-child(odd) {
-                background-color: #f9fafe;
-              }
-            }
-            .upload-input {
-              position: relative;
-              .file-input {
-                position: absolute;
-                top: 0;
-                cursor: pointer;
-                width: 80px;
-                height: 100%;
-                opacity: 0;
-              }
-              .file-button {
-                position: absolute;
-                top: 7px;
-                width: 80px;
-                height: 35px;
-                line-height: 35px;
-                padding-right: 20px;
-                text-align: right;
-                background-color: #66afff;
-                border-radius: 5px;
-              }
-              .file-info {
-                color: #919193;
-                height: 100%;
-                font-size: 14px;
-                line-height: 3.5;
-                padding-left: 120px;
-              }
-            }
-            .upload-title {
-              font-size: 13px;
-              .file-div {
-                color: #666;
-                float: left;
-                height: 50px;
-                line-height: 50px;
-                &:nth-child(1) {
-                  width: 250px;
-                  padding-left: 20px;
-                }
-                &:nth-child(2) {
-                  width: 85px;
-                }
-                &:nth-child(3) {
-                  width: 280px;
-                }
-                &:nth-child(4) {
-                  width: 150px;
-                }
-              }
-            }
-            .upload-title-content {
-              border: 1px solid transparent;
-              &:hover {
-                background-color: #eaf5ff;
-                border: 1px solid #d5eaff;
-              }
-              color: #666;
-              .file-div {
-                float: left;
-                height: 50px;
-                line-height: 50px;
-                font-size: 13px;
-              }
-              .file-name {
-                width: 250px;
-              }
-              .size {
-                width: 85px;
-              }
-              .date {
-                width: 280px;
-              }
-              .file-ues {
-                cursor: pointer;
-                margin-right: 20px;
-                &:hover {
-                  color: #5da6f5;
-                }
-              }
-              .file-del {
-                cursor: pointer;
-                &:hover {
-                  color: red;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    .current {
-      border: 2px solid #242424 !important;
-      background-color: #242424;
-    }
-    .chat {
-      height: 100%;
-      flex: 2;
-      background-color: #2b2f38;
-      position: relative;
-      .msg {
-        padding: 25px 20px;
-        overflow-y: auto;
-        max-height: calc(100% - 40px);
-        &::-webkit-scrollbar {
-          width: 5px;
-          height: 100%;
-          border-radius: 5px;
-          background-color: transparent;
-        }
-        &::-webkit-scrollbar-thumb {
-          min-height: 5px;
-          min-width: 5px;
-          border: 1px solid rgb(85, 91, 106);
-          border-radius: 5px;
-          background-color: rgb(85, 91, 106);
-        }
-        .msg-left {
-          // float: left;
-          text-align: left;
-          position: relative;
-          .info {
-            &::after {
-              left: 10px;
-            }
-          }
-        }
-        .msg-right {
-          // float: right;
-          text-align: right;
-          position: relative;
-          .info {
-            &::after {
-              right: 10px;
-            }
-          }
-        }
-        .name {
-          margin: 12px 0 8px;
-        }
-        .info {
-          display: inline-block;
-          background-color: #fff;
-          color: #282828;
-          border-radius: 6px;
-          line-height: 2;
-          width: auto;
-          min-width: 30px;
-          text-align: center;
-          padding: 0 5px;
-          &::after {
-            content: "";
-            position: absolute;
-            top: 16px;
-            display: inline-block;
-            width: 0;
-            height: 0;
-            border: 4px solid #fff;
-            border-left-color: transparent;
-            border-right-color: transparent;
-            border-bottom-color: transparent;
-            transform: rotate(180deg);
-          }
-        }
-      }
-      .send {
-        position: absolute;
-        bottom: 0;
-        height: 40px;
-        width: 100%;
-        display: flex;
-        input[type="text"] {
-          height: 100%;
-          flex: 4;
-          outline: none;
-          padding: 0 10px;
-          border: 0.5px solid transparent;
-          font-size: 14px;
-        }
-        input[type="button"] {
-          display: inline-block;
-          height: 100%;
-          flex: 1;
-          outline: none;
-          color: #fff;
-          border: 0.5px solid #5da6f5;
-          background-color: #5da6f5;
-          -webkit-appearance: button;
-          cursor: pointer;
-          text-overflow: ellipsis;
-          overflow: hidden;
-          white-space: nowrap;
-          font-size: 14px;
-          &:hover {
-            background: #4897ed;
-          }
-        }
-      }
-    }
-  }
-}
+
+
 </style>

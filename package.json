@@ -17,8 +17,8 @@
     "vuex": "^2.3.1",
     "wilddog": "^2.5.17",
     "wilddog-board": "^0.2.6",
-    "wilddog-video-call": "2.4.1",
-    "wilddog-video-room": "2.2.6"
+    "wilddog-video-call": "^2.4.1",
+    "wilddog-video-room": "^2.2.6"
   },
   "devDependencies": {
     "babel-core": "^6.22.1",

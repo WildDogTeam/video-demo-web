@@ -13,7 +13,7 @@
       <ul class="features clearfix">
         <li class="full-item"><i class="icon icon--8" @click="sorry"></i>屏幕共享</li>
         <li class="full-item"><i class="icon icon--7" @click="sorry"></i>云端录制</li>
-        <li class="full-item"><i class="icon icon-6" @click="sorry"></i>插 播</li>
+        <!-- <li class="full-item"><i class="icon icon-6" @click="sorry"></i>插 播</li> -->
       </ul>
       <div class="video-box">
         <ul class="inner clearfix">
@@ -28,11 +28,10 @@
               </div>
             </div>
           </li>
-          <li class="item" v-for='(item, index) in participants' :key="item.streamOwners[0].userId">
+          <li class="item" v-for='(item, index) in participants' :key="item.streamId">
             <video autoplay ref="remoteStream" :controls="isMobile && (isFF || isSafari)"></video>
             <div class="controls">
-              <!-- <span class="name">{{users[item.streamOwners[0].userId] ? users[item.streamOwners[0].userId].name : ''}}</span> -->
-              <span class="name" ref="name">May</span>
+              <span class="name" ref="name"> {{ item.attributes.name || 'May' }}</span>
               <div class="wrap clearfix">
                 <span class="media" @click="enableAudio"><i class="icon-" :data-stream="index"></i></span>
                 <span class="video" @click="enableVideo"><i class="icon-" :data-stream="index"></i></span>
@@ -90,7 +89,6 @@ export default {
 
     this.windowUrl = `https://www.wilddog.com/demo/wilddogvideo/#/login`;
     this.userRef = wilddog.sync().ref(`room/${this.roomId}/users/`);
-    // this.dimension = location.hash.split("&")[1].replace("dimension=", "");
 
     if (!wilddogVideo.appId) {
       wilddogVideo.initialize({
@@ -102,17 +100,16 @@ export default {
     this.roomInstance = wilddogVideo.room(this.roomId);
     this.userRef.on("value", snapshot => (this.users = snapshot.val()));
 
-    wilddogVideo
-      .createLocalStream({
-        captureAudio: true,
-        captureVideo: true,
-        dimension: this.dimension,
-        maxFPS: 15
-      })
-      .then(localStream => {
-        this.localStream = localStream;
-        this.localStream.attach(this.$refs.localStream);
-      });
+    wilddogVideo.createLocalStream({
+      captureAudio: true,
+      captureVideo: true,
+      dimension: this.dimension,
+      maxFPS: 15
+    }).then(localStream => {
+      this.localStream = localStream;
+      this.localStream.setAttributes({ 'name': this.name });
+      this.localStream.attach(this.$refs.localStream);
+    });
   },
   mounted() {
     window.addEventListener("beforeunload", () => this.leaveRoom());
@@ -233,9 +230,7 @@ export default {
           const date = new Date().getTime();
           setInterval(() => {
             this.time =
-              snapshot.val() > date
-                ? realSysTime(date)
-                : realSysTime(snapshot.val());
+              snapshot.val() > date ? realSysTime(date) : realSysTime(snapshot.val());
           }, 1000);
         }
       });
@@ -249,9 +244,9 @@ export default {
     leaveRoom() {
       window.onresize = null;
       if (this.localStream) this.localStream.close();
-      try{
+      try {
         this.roomInstance.disconnect();
-      }catch(e){
+      } catch (e) {
         console.log(e)
       }
       this.removeUid();
@@ -292,9 +287,10 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["name", "token", "uid","dimension"])
+    ...mapGetters(["name", "token", "uid", "dimension"])
   }
 };
+
 </script>
 <style rel="stylesheet/scss" lang="scss">
 .room {
@@ -352,14 +348,19 @@ export default {
     min-height: calc(100% - 52px);
     margin: 0 auto;
     .features {
-      width: 180px;
+      width: 160px;
       margin: 0px auto;
       padding: 16px 0 36px;
       .full-item {
         width: calc(100%/3);
-        float: left;
         text-align: center;
         font-size: 12px;
+        &:nth-child(1) {
+          float: left;
+        }
+        &:nth-child(2) {
+          float: right;
+        }
         .icon {
           display: block;
           margin: 0 auto 5px;
@@ -373,10 +374,10 @@ export default {
             background-color: #162f47;
           }
         }
-        .icon--7{
+        .icon--7 {
           font-size: 35px;
         }
-        .icon-6{
+        .icon-6 {
           margin-left: 4px;
           font-size: 32px;
         }
@@ -400,8 +401,7 @@ export default {
           background-color: #000;
           video {
             width: 375px;
-            height: 280px;
-            // background-color: #000;
+            height: 280px; // background-color: #000;
           }
           &:nth-child(3n) {
             margin-right: 0;
@@ -491,4 +491,5 @@ export default {
     }
   }
 }
+
 </style>

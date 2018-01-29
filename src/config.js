@@ -1,18 +1,23 @@
 /*
  * @Author: liujie
  * @Date:   2017-12-29 16:11:18
- * @Last Modified by: ihoey
- * @Last Modified time: 2017-12-29 22:02:34
+ * @Last Modified by:   liujie3612
+ * @Last Modified time: 2018-01-25 14:20:43
  */
 module.exports = {
   'wd': {
-    syncAppid: "ihoey",
-    videoAppid: "wd5517854395tflsgc"
+    syncAppid: 'wd0018753635ifkvjw',
+    videoAppid: "wd5248438159qbhzao"
   },
   'qiniu': {
-    BUCKET_NAME: "dodetop",
-    ACCESS_KEY: "Bo7KgOB3js5PUaZkFO-45byYGEjUMANo9mDhCm8S",
-    SECRET_KEY: "r7qTZi3tN8zja8XgSCoX4O9CPddICeXRg_vQ3iPn",
-    domain: "https://oisha19l0.qnssl.com/"
+    BUCKET_NAME: "whiteboard",
+    ACCESS_KEY: "iuYyEIqScKViXRSolvrZ3ZIr-JMqka8LrWQTNvbl",
+    SECRET_KEY: "MCJmfW6pxlj78htXb6NeNcPEc5O6bvhFUKET5xQf",
+    domain: "https://whiteboard-img.wdstatic.cn",
+    uploaderUrl: 'https://convertoffice.wilddog.com/upload'
+  },
+  'cdn': {
+    assetsSubDirectory: 'web-video-demo/',
+    assetsPublicPath: 'https://js.wdstatic.cn/'
   }
 };

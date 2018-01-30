@@ -1,72 +1,61 @@
 <template>
-    <div class="board" ref="board">
-        <div id="canvas" @click="onBoardChange(boardObj.bigBoard)"></div>
-        <div class="tool">
-            <ul class="tool-bar">
-                <li class="item" v-for=" item in toolBar" :key="item.type" @click="addToolListener(item)" :class="{ 'current': item.active }">
-                    <i class="icon" :class="item.class"></i>
-                </li>
-                <input ref="Image" type="file" id="Image" accept="image/png,image/gif,image/jpeg">
-            </ul>
-            <div class="tool-style" :class="{ 'open-style': openStyle }">
-                <ul class="stroke-size-div" v-if="isStroke">
-                    <li class="item stroke-size" v-for="item in strokeWidth" :key="item.style" @click="addSizeListener(item)" :class="{ 'current': item.active }">
-                        <i class="icon" :style="{ transform: 'scale(' + item.style + ')' }"></i>
-                    </li>
-                </ul>
-                <ul class="font-size-div" v-else>
-                    <li class="item font-size" v-for="item in fontSize" :key="item.style" :style="{ fontSize: item.style + 'px'} " @click="addSizeListener(item)" :class="{ 'current': item.active }">A</li>
-                </ul>
-                <ul class="stroke-color-div">
-                    <i class="line"></i>
-                    <li v-for="item in strokeColor" :key="item.color" class="item stroke-color" :class="{ 'current': item.active }" :style="{ background: item.color }" @click="addColorListener(item)"></li>
-                </ul>
-            </div>
-        </div>
-        <div class="flie-upload" v-show="document.status">
-            <ul class="upload-head">
-                <li class="head-item" :class="{'current-head': !document.currentTab}" @click="document.currentTab = false">文档</li>
-                <li class="head-item" :class="{'current-head': document.currentTab}" @click="document.currentTab = true">音视频</li>
-                <li class="head-close" @click="document.status = false">
-                    <i class="icon-25"></i>
-                </li>
-            </ul>
-            <div class="upload-content">
-                <upload-office v-show="!document.currentTab" :upload-office-data="document.officeFiles" class="documents" @delOfficeFile="delOfficeFile" @useOfficeFile="useOfficeFile"></upload-office>
-                <upload-videos v-show="document.currentTab" :upload-video-data='document.videoFiles' :room-id='roomId' @operateVideoSuccess='operateVideoSuccess' @useVideoSuccess='useVideoSuccess'></upload-videos>
-                <v-loading v-show="document.loading" @waitingLoading="waitingLoading"></v-loading>
-            </div>
-        </div>
-        <office-file :currentFile="currentFile" :boardRef="boardRef" :boardObj="boardObj" @onBoardChange="onBoardChange" @delCurrentFile="delCurrentFile" @pageLast="pageLast" @pageNext="pageNext"></office-file>
-        <div class="insert-video" v-show="document.videoFiles.externalInputs.length !== 0">
-            <div class="video-header">
-                <span class="title">{{ document.videoFiles.video.name }} </span>
-                <!-- <span class="close"><i class="icon-25"></i></span> -->
-            </div>
-            <video autoplay="autoplay" ref="insertStream"></video>
-            <div class="video-controls">
-                <div class="funcs" v-show='document.videoFiles.video.funcsShow'>
-                    <span class="func pause" @click="controlInsertVideo('pause')" v-show='document.videoFiles.video.play'>
-                        <i class="icon icon--19"></i>
-                    </span>
-                    <span class="func continue" @click="controlInsertVideo('continue')" v-show='!document.videoFiles.video.play'>
-                        <i class="icon icon--20"></i>
-                    </span>
-                    <span class="func replay" @click="controlInsertVideo('replay')">
-                        <i class="icon icon--18"></i>
-                    </span>
-                    <span class="func stop" @click="controlInsertVideo('stop')">
-                        <i class="icon icon--21"></i>
-                    </span>
-                </div>
-                <div class="time">
-                    00:00:00/00:00:00
-                </div>
-            </div>
-        </div>
+  <div class="board" ref="board">
+    <div id="canvas" @click="onBoardChange(boardObj.bigBoard)"></div>
+    <div class="tool">
+      <ul class="tool-bar">
+        <li class="item" v-for=" item in toolBar" :key="item.type" @click="addToolListener(item)" :class="{ 'current': item.active }">
+          <i class="icon" :class="item.class"></i>
+        </li>
+        <input ref="Image" type="file" id="Image" accept="image/png,image/gif,image/jpeg">
+      </ul>
+      <div class="tool-style" :class="{ 'open-style': openStyle }">
+        <ul class="stroke-size-div" v-if="isStroke">
+          <li class="item stroke-size" v-for="item in strokeWidth" :key="item.style" @click="addSizeListener(item)" :class="{ 'current': item.active }">
+            <i class="icon" :style="{ transform: 'scale(' + item.style + ')' }"></i>
+          </li>
+        </ul>
+        <ul class="font-size-div" v-else>
+          <li class="item font-size" v-for="item in fontSize" :key="item.style" :style="{ fontSize: item.style + 'px'} " @click="addSizeListener(item)" :class="{ 'current': item.active }">A</li>
+        </ul>
+        <ul class="stroke-color-div">
+          <i class="line"></i>
+          <li v-for="item in strokeColor" :key="item.color" class="item stroke-color" :class="{ 'current': item.active }" :style="{ background: item.color }" @click="addColorListener(item)"></li>
+        </ul>
+      </div>
     </div>
+    <div class="flie-upload" v-show="document.status">
+      <ul class="upload-head">
+        <li class="head-item" :class="{'current-head': !document.currentTab}" @click="document.currentTab = false">文档</li>
+        <li class="head-item" :class="{'current-head': document.currentTab}" @click="document.currentTab = true">音视频</li>
+        <li class="head-close" @click="document.status = false">
+          <i class="icon-25"></i>
+        </li>
+      </ul>
+      <div class="upload-content">
+        <upload-office v-show="!document.currentTab" :upload-office-data="document.officeFiles" class="documents" @delOfficeFile="delOfficeFile" @useOfficeFile="useOfficeFile"></upload-office>
+        <upload-videos v-show="document.currentTab" :upload-video-data='document.videoFiles' :room-id='roomId' @operateVideoSuccess='operateVideoSuccess' @useVideoSuccess='useVideoSuccess'></upload-videos>
+        <v-loading v-show="document.loading" @waitingLoading="waitingLoading"></v-loading>
+      </div>
+    </div>
+    <office-file :currentFile="currentFile" :boardRef="boardRef" :boardObj="boardObj" @onBoardChange="onBoardChange" @delCurrentFile="delCurrentFile" @pageLast="pageLast" @pageNext="pageNext"></office-file>
+    <div class="insert-video" v-show="document.videoFiles.externalInputs.length !== 0">
+      <div class="video-header">
+        <span class="title">{{ document.videoFiles.video.name }} </span>
+        <span class="close" @click="controlInsertVideo('stop')"><i class="icon-25"></i></span>
+      </div>
+      <video autoplay="autoplay" ref="insertStream"></video>
+      <div class="video-controls">
+        <div class="funcs" v-show='document.videoFiles.video.funcsShow'>
+          <span class="func pause" @click="controlInsertVideo('pause')" v-show='document.videoFiles.video.play'><i class="icon icon--19"></i></span>
+          <span class="func continue" @click="controlInsertVideo('continue')" v-show='!document.videoFiles.video.play'><i class="icon icon--20"></i></span>
+          <span class="func replay" @click="controlInsertVideo('replay')"><i class="icon icon--18"></i></span>
+          <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span>
+        </div>
+        <div class="time">{{this.document.videoFiles.video.curTime}}/00:00:00</div>
+      </div>
+    </div>
+  </div>
 </template>
-
 <script>
 import config from "config";
 import { mapGetters } from "vuex";
@@ -113,15 +102,15 @@ export default {
           video: {
             name: "",
             play: true,
-            funcsShow: false
+            funcsShow: false,
+            curTime: 0
           }
         }
       },
       currentFile: {},
       boardObj: {},
       wdBoard: {},
-      strokeColor: [
-        {
+      strokeColor: [{
           color: "rgb(252,61,57)",
           active: true
         },
@@ -146,8 +135,7 @@ export default {
           active: false
         }
       ],
-      strokeWidth: [
-        {
+      strokeWidth: [{
           style: 0.2,
           width: 2,
           active: true
@@ -163,8 +151,7 @@ export default {
           active: false
         }
       ],
-      fontSize: [
-        {
+      fontSize: [{
           style: 18,
           width: 18,
           active: true
@@ -180,8 +167,7 @@ export default {
           active: false
         }
       ],
-      toolBar: [
-        {
+      toolBar: [{
           active: false,
           type: "Pen",
           color: "rgb(252,61,57)",
@@ -260,6 +246,13 @@ export default {
     this.boardRef = wilddog.sync().ref(`room/${this.roomId}/board`);
     this.documentRef = wilddog.sync().ref(`room/${this.roomId}/document`);
 
+    wilddog.sync().ref(`room/${this.roomId}/curFile`).on('value', (snap) => {
+      if (snap.val()) {
+        this.document.videoFiles.video.name = snap.val().name
+        this.document.videoFiles.video.status = snap.val().status
+      }
+    })
+
     this.getVideoList();
     this.getOfficeLists();
     //获取当前打开的文档
@@ -295,15 +288,15 @@ export default {
       console.log("openDocument");
       this.openDocument();
     });
-    this.$on("addInsertStream", () => {
-      console.log("addInsertStream");
-      this.addInsertStream();
+
+    Bus.$on("addInsertStream", (stream) => {
+      this.addInsertStream(stream);
     });
-    this.$on("removeInsertStream", () => {
-      console.log("removeInsertStream");
+
+    Bus.$on("removeInsertStream", () => {
       this.removeInsertStream();
     });
-    console.log("document");
+
     Bus.$emit("send-document", this.document);
   },
   mounted() {
@@ -314,6 +307,10 @@ export default {
         write: true
       });
     };
+
+    this.$refs.insertStream.ontimeupdate = () => {
+      this.document.videoFiles.video.curTime = parseInt(this.$refs.insertStream.currentTime)
+    }
 
     const uploader = uploadClient();
 
@@ -356,8 +353,19 @@ export default {
       getList(config.wd.videoAppid, this.uid, this.token).then(response => {
         this.document.loading = false;
         let data = response.data;
-        this.document.videoFiles.list = data;
-        this.document.videoFiles.isEmpty = data.length == 0 ? true : false;
+        console.log(data)
+        if (Array.isArray(data)) {
+          let syncData = []
+          data.forEach((element, index) => {
+            syncData.push({
+              name: element.name,
+              status: 'stop'
+            })
+          });
+          wilddog.sync().ref(`room/${this.roomId}/users/${this.uid}/files`).set(syncData)
+          this.document.videoFiles.list = data;
+          this.document.videoFiles.isEmpty = data.length == 0 ? true : false;
+        }
       });
     },
     addToolListener(tool) {
@@ -487,28 +495,25 @@ export default {
       this.toolBar.map(e => ((e.active = false), (this.openStyle = false)));
     },
     delOfficeFile(type, key) {
-      this.documentRef
-        .child(`${type == "office" ? "officeFiles" : "videoFiles"}/${key}`)
-        .remove();
+      this.documentRef.child(`${type == "office" ? "officeFiles" : "videoFiles"}/${key}`).remove();
     },
     operateVideoSuccess() {
       this.getVideoList();
     },
-    useVideoSuccess() {
+    useVideoSuccess(name) {
       this.document.status = false;
+      // this.document.videoFiles.video.curTime = this.$refs.insertStream.currentTime
+
+      wilddog.sync().ref(`room/${this.roomId}/curFile`).set({
+        'name' : name
+      })
     },
     openDocument() {
       this.document.status = true;
     },
     controlInsertVideo() {
       const arg = arguments[0];
-      controlFile(
-        config.wd.videoAppid,
-        this.roomId,
-        arg,
-        this.document.videoFiles.externalInputs[0].streamId,
-        this.token
-      ).then(response => {
+      controlFile(config.wd.videoAppid, this.roomId, arg, this.document.videoFiles.externalInputs[0].streamId, this.token).then(response => {
         let data = response.data;
         switch (arg) {
           case "stop":
@@ -523,11 +528,13 @@ export default {
             break;
         }
       });
+      // this.document.videoFiles.video.curTime = this.$refs.insertStream.currentTime
     },
+
     openDocument() {
       this.document.status = true;
     },
-    waitingLoading() {},
+
     getOfficeLists() {
       //获取office列表
       this.documentRef.on("value", snapshot => {
@@ -545,11 +552,13 @@ export default {
         this.document.officeFiles.fileLists = data;
       });
     },
+
     getCurrentFile() {
       this.boardRef.child(`currentFile`).on("value", snapshot => {
         this.currentFile = snapshot.val();
       });
     },
+
     useOfficeFile(key) {
       this.document.status = false;
       var data = this.document.officeFiles.fileLists[key];
@@ -560,6 +569,7 @@ export default {
       this.boardRef.child(`currentFile`).set(null);
       this.boardRef.child(`currentFile`).push(data);
     },
+
     delOfficeFile(key) {
       this.$parent.dialogOption.text = "确认删除所选文档";
       this.$parent.showDialog = true;
@@ -576,10 +586,12 @@ export default {
           this.$parent.showDialog = false;
         });
     },
+
     delCurrentFile(key) {
       // console.log(key);
       this.boardRef.child(`currentFile/${key}`).remove();
     },
+
     pageLast(key) {
       if (this.currentFile[key].currentPage > 1) {
         this.currentFile[key].currentPage--;
@@ -589,20 +601,19 @@ export default {
           .set(this.currentFile[key].currentPage);
       }
     },
+
     pageNext(key) {
-      if (
-        this.currentFile[key].currentPage < this.currentFile[key].info.Pages
-      ) {
+      if (this.currentFile[key].currentPage < this.currentFile[key].info.Pages) {
         this.currentFile[key].currentPage++;
         this.wdBoard.changePage(this.currentFile[key].currentPage - 1);
-        this.boardRef
-          .child(`currentFile/${key}/currentPage`)
-          .set(this.currentFile[key].currentPage);
+        this.boardRef.child(`currentFile/${key}/currentPage`).set(this.currentFile[key].currentPage);
       }
     },
+
     onBoardChange(object) {
       this.wdBoard = object;
     },
+
     addInsertStream(stream) {
       this.document.status = false;
       if (this.document.videoFiles.externalInputs.length == 0) {
@@ -612,19 +623,21 @@ export default {
       }
 
       //插播流不是自己的，底部的功能栏去掉
-      if (
-        this.document.videoFiles.externalInputs[0].streamOwners[0].userId ==
-        this.uid
-      ) {
+      if (this.document.videoFiles.externalInputs[0].streamOwners[0].userId == this.uid) {
         this.document.videoFiles.video.funcsShow = true;
       }
+      this.$refs.insertStream && stream.attach(this.$refs.insertStream);
     },
+
     removeInsertStream() {
       this.document.videoFiles.externalInputs = [];
-    }
+    },
+
+    waitingLoading() {}
   },
   computed: {
     ...mapGetters(["name", "token", "uid", "dimension"])
   }
 };
+
 </script>

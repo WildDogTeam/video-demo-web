@@ -45,8 +45,7 @@ export default {
       roomId: this.$route.query.roomId,
       isMobile: /Mobile/i.test(navigator.userAgent),
       isFF: navigator.userAgent.indexOf("Firefox") > -1,
-      isSafari:
-        navigator.userAgent.indexOf("Safari") > -1 &&
+      isSafari: navigator.userAgent.indexOf("Safari") > -1 &&
         navigator.userAgent.indexOf("Chrome") < 1,
       localStream: "",
       participants: [],
@@ -64,24 +63,23 @@ export default {
 
     this.roomInstance = wilddogVideo.room(this.roomId);
     // 创建一个同时有音频和视频的媒体流
-    wilddogVideo
-      .createLocalStream({
-        captureAudio: false,
-        captureVideo: true,
-        dimension: this.dimension || "480p",
-        maxFPS: 15
-      })
-      .then(localStream => {
-        this.localStream = localStream;
-        this.localStream.setAttributes({
-          isExternalInput: false,
-          name: this.name
-        });
+    wilddogVideo.createLocalStream({
+      captureAudio: false,
+      captureVideo: true,
+      dimension: this.dimension || "480p",
+      maxFPS: 15
+    }).then(localStream => {
+      this.localStream = localStream;
+      this.localStream.setAttributes({
+        isExternalInput: false,
+        name: this.name
+      });
+      this.$nextTick(() => {
         this.localStream.attach(this.$refs.localStream);
       });
+    });
 
     this.$on("leaveRoom", () => {
-      // console.log("video-box--leaveRoom");
       if (this.localStream) this.localStream.close();
       try {
         this.roomInstance.disconnect();
@@ -91,11 +89,42 @@ export default {
     });
 
     Bus.$on("send-document", document => {
-      console.log(document);      
-      this.document = document;
+      this.document = document
     });
   },
   methods: {
+    _addStream(stream) {
+      if (stream.attributes.isExternalInput == false) {
+        this.participants.push(stream);
+        this._displayStreams(this.participants);
+      } else {
+        Bus.$emit("addInsertStream", stream);
+      }
+    },
+
+    _removeStream(stream) {
+      this.participants.map((element, index) => {
+        if (element.streamId == stream.streamId) {
+          this.participants.splice(index, 1);
+          this._displayStreams(this.participants);
+        }
+      });
+
+      if (this.document.videoFiles.externalInputs.length !== 0 && stream.streamId == this.document.videoFiles.externalInputs[0].streamId) {
+        Bus.$emit("removeInsertStream");
+      }
+    },
+
+    _displayStreams(participant) {
+      for (let i = 0; i < participant.length; i++) {
+        this.$nextTick(() => {
+          if (this.$refs.remoteStream[i]) {
+            participant[i].attach(this.$refs.remoteStream[i]);
+          }
+        });
+      }
+    },
+
     enableAudio(e) {
       const dataStream = e.target.attributes["data-stream"];
       const index = dataStream ? dataStream.value : null;
@@ -113,6 +142,7 @@ export default {
         }
       }
     },
+
     enableVideo(e) {
       const dataStream = e.target.attributes["data-stream"];
       const index = dataStream ? dataStream.value : null;
@@ -130,6 +160,7 @@ export default {
         }
       }
     },
+
     toggleIcon(e) {
       if (e.target.parentElement.className.indexOf("current") == -1) {
         e.target.parentElement.className += " current";
@@ -141,48 +172,11 @@ export default {
         );
         return true;
       }
-    },
-    _addStream(stream) {
-      if (stream.attributes.isExternalInput == false) {
-        this.participants.push(stream);
-        this._displayStreams(this.participants);
-      } else {
-        this.$emit("addInsertStream", stream);
-
-        this.$nextTick(() => {
-          stream.attach(this.$refs.insertStream);
-        });
-      }
-    },
-
-    _removeStream(stream) {
-      this.participants.map((element, index) => {
-        if (element.streamId == stream.streamId) {
-          this.participants.splice(index, 1);
-          this._displayStreams(this.participants);
-        }
-      });
-
-      if (
-        this.document.videoFiles.externalInputs.length !== 0 &&
-        stream.streamId == this.document.videoFiles.externalInputs[0].streamId
-      ) {
-        // this.document.videoFiles.externalInputs = []
-        this.$emit("removeInsertStream");
-      }
-    },
-
-    _displayStreams(participant) {
-      for (let i = 0; i < participant.length; i++) {
-        this.$nextTick(() => {
-          participant[i].attach(this.$refs.remoteStream[i]);
-        });
-      }
     }
   },
   watch: {
     localStream: function(argument) {
-      console.log("watch-localStream");
+      // console.log("watch-localStream");
       this.roomInstance.connect();
       this.roomInstance.on("connected", () => {
         console.log("connected success");
@@ -217,4 +211,5 @@ export default {
     ...mapGetters(["name", "token", "uid", "dimension"])
   }
 };
+
 </script>

@@ -22,14 +22,17 @@
         <div class="file-div date">{{item.createTime | parseTime}}</div>
         <div class="file-div">
           <div class="file-success" v-show="item.status == '3' && uploadVideoData.externalInputs.length == 0">
-            <span class="file-ues" @click="useVideoFile(item.id)">使用</span>
+            <span class="file-ues" @click="useVideoFile(item.id,item.name)">使用</span>
             <span class="file-del" @click="delVideoFile(item.id)">删除</span>
           </div>
           <div class="file-uploading" v-show="item.status == '1'">
+            上传成功
+          </div>
+          <div class="file-uploading" v-show="item.status == '2'">
             转码中...
           </div>
           <div class="file-failed" v-show="item.status == '4'">
-            转码失败...
+            转码失败
           </div>
         </div>
       </li>
@@ -65,7 +68,7 @@ export default {
     }
   },
   created() {
-    console.log(this.uploadVideoData)
+    // console.log(this.uploadVideoData)
   },
 
   methods: {
@@ -98,17 +101,15 @@ export default {
         }
       })
     },
-    useVideoFile(fileId) {
+    useVideoFile(fileId, name) {
       if (this.uploadVideoData.externalInputs.length == 0) {
         useFile(config.wd.videoAppid, this.roomId, fileId, this.token).then(response => {
           const data = response.data
-          console.log(data)
-          this.$emit("useVideoSuccess");
+          this.$emit("useVideoSuccess", name);
         })
       }
     }
   },
-
   computed: {
     ...mapGetters(["token", "uid"])
   },

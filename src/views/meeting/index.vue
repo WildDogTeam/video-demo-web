@@ -57,7 +57,7 @@ export default {
   components: {
     "v-head": meetingHead,
     "v-videoBox": videoBox,
-    "v-board": board,    
+    "v-board": board,
     "v-dialog": dialog
   },
   data() {
@@ -96,10 +96,8 @@ export default {
   },
   mounted() {
     window.addEventListener("beforeunload", event => this.leaveRoom());
-
     this.updateTime();
     this.addUid();
-
   },
   beforeDestroy() {
     this.leaveRoom();
@@ -111,14 +109,11 @@ export default {
         document.execCommand("copy", "false", null);
         this.dialogOption.text = "地址已复制到剪贴板";
         this.showDialog = true;
-        this.$refs.dialog
-          .confirm()
-          .then(() => {
-            this.showDialog = false;
-          })
-          .catch(() => {
-            this.showDialog = false;
-          });
+        this.$refs.dialog.confirm().then(() => {
+          this.showDialog = false;
+        }).catch(() => {
+          this.showDialog = false;
+        });
       } catch (err) {
         console.log(err);
         alert("please press Ctrl/Cmd+C to copy");
@@ -127,14 +122,11 @@ export default {
     sorry() {
       this.dialogOption.text = "该功能正在开发中，敬请期待";
       this.showDialog = true;
-      this.$refs.dialog
-        .confirm()
-        .then(() => {
-          this.showDialog = false;
-        })
-        .catch(() => {
-          this.showDialog = false;
-        });
+      this.$refs.dialog.confirm().then(() => {
+        this.showDialog = false;
+      }).catch(() => {
+        this.showDialog = false;
+      });
     },
     //房间时间
     updateTime() {
@@ -146,10 +138,7 @@ export default {
         } else {
           const date = new Date().getTime();
           setInterval(() => {
-            this.time =
-              snapshot.val() > date ?
-              realSysTime(date) :
-              realSysTime(snapshot.val());
+            this.time = snapshot.val() > date ? realSysTime(date) : realSysTime(snapshot.val());
           }, 1000);
         }
       });
@@ -160,7 +149,6 @@ export default {
     removeUid() {
       this.userRef.child(this.uid).remove();
     },
-
     leaveRoom() {
       window.onresize = null;
       this.$refs.videoBox.$emit("leaveRoom");
@@ -182,7 +170,7 @@ export default {
         this.messageVal = "";
       }
     },
-    openDocument(){
+    openDocument() {
       this.$refs.board.$emit('openDocument');
     }
   },

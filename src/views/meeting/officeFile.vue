@@ -23,7 +23,6 @@
     </div>
   </div>
 </template>
-
 <script>
 export default {
   name: "officeFile",
@@ -44,9 +43,9 @@ export default {
       .child(`currentFile/${this.currentBoard}/currentPage`)
       .once("value", snapshot => {
         if (snapshot.val()) {
-          const page = snapshot.val()
-            ? snapshot.val() - 1 == -1 ? 0 : snapshot.val() - 1
-            : 0;
+          const page = snapshot.val() ?
+            snapshot.val() - 1 == -1 ? 0 : snapshot.val() - 1 :
+            0;
           this.$nextTick(() => {
             if (
               this.boardObj[this.currentBoard].currentPage() + 1 !=
@@ -171,8 +170,7 @@ export default {
               this.boardObj[key] = new WildBoard(
                 this.boardRef.child(`currentFile/${key}`),
                 this.$parent.uid,
-                key,
-                {
+                key, {
                   width: 595,
                   height: element.info ? 842 : 338,
                   write: true
@@ -200,4 +198,5 @@ export default {
     }
   }
 };
+
 </script>

@@ -1,9 +1,8 @@
 /*
  * @Author: liujie
  * @Date:   2017-12-29 16:11:18
-<<<<<<< HEAD
- * @Last Modified by:   liujie3612
- * @Last Modified time: 2018-01-29 19:52:34
+ * @Last Modified by: ihoey
+ * @Last Modified time: 2018-01-30 10:56:25
  */
 module.exports = {
   'wd': {

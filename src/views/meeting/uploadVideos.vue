@@ -1,5 +1,5 @@
 <template>
-  <div class="videos" v-else>
+  <div class="videos">
     <ul class="content-item">
       <li class="upload-input">
         <div class="file-button">上传</div>
@@ -14,7 +14,7 @@
         <div class="file-div">操作</div>
         <div class="file-div file-length">共{{uploadVideoData.list.length}}个文件</div>
       </li>
-      <li v-for="(item,index) in uploadVideoData.list" class="upload-title-content">
+      <li v-for="(item,index) in uploadVideoData.list" class="upload-title-content" :key="index">
         <div class="file-div">{{ index + 1 }}</div>
         <div class="file-type-icon" :class="item.name | fileType"></div>
         <div class="file-div file-name">{{item.name}}</div>

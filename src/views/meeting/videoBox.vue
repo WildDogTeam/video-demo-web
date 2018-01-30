@@ -7,8 +7,12 @@
           <span class="name">{{ name }}</span>
           <div class="wrap">
             <!-- <span class="translate" @click="switchCamera"><i class="icon-"></i></span> -->
-            <span class="media" @click="enableAudio"><i class="icon-"></i></span>
-            <span class="video" @click="enableVideo"><i class="icon-"></i></span>
+            <span class="media" @click="enableAudio">
+              <i class="icon-"></i>
+            </span>
+            <span class="video" @click="enableVideo">
+              <i class="icon-"></i>
+            </span>
           </div>
         </div>
       </li>
@@ -17,8 +21,12 @@
         <div class="controls">
           <span class="name" ref="name">{{item.attributes.name || 'May'}}</span>
           <div class="wrap clearfix">
-            <span class="media" @click="enableAudio"><i class="icon-" :data-stream="index"></i></span>
-            <span class="video" @click="enableVideo"><i class="icon-" :data-stream="index"></i></span>
+            <span class="media" @click="enableAudio">
+              <i class="icon-" :data-stream="index"></i>
+            </span>
+            <span class="video" @click="enableVideo">
+              <i class="icon-" :data-stream="index"></i>
+            </span>
           </div>
         </div>
       </li>
@@ -27,29 +35,22 @@
 </template>
 <script>
 import config from "config";
+import { mapGetters } from "vuex";
 
 export default {
   name: "videoBox",
-  props: {
-    name: String,
-    token: String,
-    dimension: String,
-    document: {
-      type: Object,
-      default: function() {
-        return {};
-      }
-    },
-  },
   data() {
     return {
       roomId: this.$route.query.roomId,
       isMobile: /Mobile/i.test(navigator.userAgent),
       isFF: navigator.userAgent.indexOf("Firefox") > -1,
-      isSafari: navigator.userAgent.indexOf("Safari") > -1 && navigator.userAgent.indexOf("Chrome") < 1,
+      isSafari:
+        navigator.userAgent.indexOf("Safari") > -1 &&
+        navigator.userAgent.indexOf("Chrome") < 1,
       localStream: "",
       participants: [],
-      roomInstance: ""
+      roomInstance: "",
+      document: {}
     };
   },
   created() {
@@ -71,7 +72,10 @@ export default {
       })
       .then(localStream => {
         this.localStream = localStream;
-        this.localStream.setAttributes({ 'isExternalInput': false, 'name': this.name });
+        this.localStream.setAttributes({
+          isExternalInput: false,
+          name: this.name
+        });
         this.localStream.attach(this.$refs.localStream);
       });
 
@@ -83,6 +87,11 @@ export default {
       } catch (e) {
         console.log(e);
       }
+    });
+
+    this.$on("send-document", document => {
+      console.log(document);      
+      this.document = document;
     });
   },
   methods: {
@@ -140,7 +149,7 @@ export default {
         this.$emit("addInsertStream", stream);
 
         this.$nextTick(() => {
-          stream.attach(this.$refs.insertStream)
+          stream.attach(this.$refs.insertStream);
         });
       }
     },
@@ -153,12 +162,13 @@ export default {
         }
       });
 
-      if (this.document.videoFiles.externalInputs.length !== 0 && stream.streamId == this.document.videoFiles.externalInputs[0].streamId) {
+      if (
+        this.document.videoFiles.externalInputs.length !== 0 &&
+        stream.streamId == this.document.videoFiles.externalInputs[0].streamId
+      ) {
         // this.document.videoFiles.externalInputs = []
         this.$emit("removeInsertStream");
-
       }
-
     },
 
     _displayStreams(participant) {
@@ -167,8 +177,7 @@ export default {
           participant[i].attach(this.$refs.remoteStream[i]);
         });
       }
-    },
-
+    }
   },
   watch: {
     localStream: function(argument) {
@@ -202,7 +211,9 @@ export default {
         });
       });
     }
+  },
+  computed: {
+    ...mapGetters(["name", "token", "uid", "dimension"])
   }
 };
-
 </script>

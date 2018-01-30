@@ -43,17 +43,19 @@ export default {
     this.boardRefs
       .child(`currentFile/${this.currentBoard}/currentPage`)
       .once("value", snapshot => {
-        const page = snapshot.val()
-          ? snapshot.val() - 1 == -1 ? 0 : snapshot.val() - 1
-          : 0;
-        this.$nextTick(() => {
-          if (
-            this.boardObj[this.currentBoard].currentPage() + 1 !=
-            snapshot.val()
-          ) {
-            this.boardObj[this.currentBoard].changePage(page);
-          }
-        });
+        if (snapshot.val()) {
+          const page = snapshot.val()
+            ? snapshot.val() - 1 == -1 ? 0 : snapshot.val() - 1
+            : 0;
+          this.$nextTick(() => {
+            if (
+              this.boardObj[this.currentBoard].currentPage() + 1 !=
+              snapshot.val()
+            ) {
+              this.boardObj[this.currentBoard].changePage(page);
+            }
+          });
+        }
       });
   },
   methods: {
@@ -74,12 +76,12 @@ export default {
       this.currentBoard = key;
       // console.log(this.currentBoard);
       this.onBoardChange(this.boardObj[key]);
-      for (const item in this.currentFile) {
-        if (this.currentFile.hasOwnProperty(item)) {
-          this.boardRef.child(`currentFile/${item}`).update({ index: 1 });
-        }
-      }
-      this.boardRef.child(`currentFile/${key}`).update({ index: 2 });
+      // for (const item in this.currentFile) {
+      //   if (this.currentFile.hasOwnProperty(item)) {
+      //     this.boardRef.child(`currentFile/${item}`).update({ index: 1 });
+      //   }
+      // }
+      // this.boardRef.child(`currentFile/${key}`).update({ index: 2 });
     },
     establishConnection(wsUrl) {
       var currentPageNumber = 0;
@@ -89,7 +91,7 @@ export default {
       var maxReconnectDelay = 30000;
       var resetDelayTimeout = null;
 
-      var onDisconnect = () =>{
+      var onDisconnect = () => {
         if (resetDelayTimeout) {
           clearTimeout(resetDelayTimeout);
         }
@@ -102,22 +104,22 @@ export default {
         currentDelay = Math.random() * currentDelay;
         reconnectDelay = Math.min(maxReconnectDelay, reconnectDelay * 1.3);
 
-        setTimeout(() =>{
+        setTimeout(() => {
           lastConnectionAttemptTime = Date.now();
           this.pptSyncWs = new WebSocket(wsUrl);
           wsInit(this.pptSyncWs);
         }, currentDelay);
       };
 
-      var wsInit = (ws)=> {
-        ws.onopen = ()=> {
-          resetDelayTimeout = setTimeout(()=> {
+      var wsInit = ws => {
+        ws.onopen = () => {
+          resetDelayTimeout = setTimeout(() => {
             reconnectDelay = 1000;
             resetDelayTimeout = null;
           }, 30000);
         };
 
-        ws.onmessage = (message) =>{
+        ws.onmessage = message => {
           // console.log(message);
           if (message.data != "3") {
             var pageIndex = message.data.split(",")[0] - 1;
@@ -126,20 +128,22 @@ export default {
               currentPageNumber = pageIndex;
               // console.log(this.currentBoard,'onmessage');
               this.boardObj[this.currentBoard].changePage(pageIndex);
-              this.boardRef.child(`currentFile/${this.currentBoard}`).update({ currentPage: pageIndex + 1 });
+              this.boardRef
+                .child(`currentFile/${this.currentBoard}`)
+                .update({ currentPage: pageIndex + 1 });
             }
           }
         };
 
-        ws.onerror = ()=> {
+        ws.onerror = () => {
           ws.close();
         };
 
-        var interval = setInterval(()=> {
+        var interval = setInterval(() => {
           ws.send("2");
         }, 25000);
 
-        ws.onclose = ()=> {
+        ws.onclose = () => {
           clearInterval(interval);
           onDisconnect();
         };

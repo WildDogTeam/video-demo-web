@@ -36,6 +36,7 @@
 <script>
 import config from "config";
 import { mapGetters } from "vuex";
+import Bus from './Bus.js';
 
 export default {
   name: "videoBox",
@@ -89,7 +90,7 @@ export default {
       }
     });
 
-    this.$on("send-document", document => {
+    Bus.$on("send-document", document => {
       console.log(document);      
       this.document = document;
     });

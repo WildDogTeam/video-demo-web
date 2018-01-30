@@ -15,6 +15,10 @@ Object.keys(filters).forEach(key => {
   Vue.filter(key, filters[key])
 });
 
+Object.keys(filters).forEach(key => {
+  Vue.filter(key, filters[key])
+});
+
 const whiteList = ['/login'];
 router.beforeEach((to, from, next) => {
   store.dispatch('checkAuthState').then((user) => {

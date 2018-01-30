@@ -2,7 +2,7 @@
 * @Author: liujie3612
 * @Date:   2018-01-26 14:43:29
 * @Last Modified by:   liujie3612
-* @Last Modified time: 2018-01-29 16:31:19
+* @Last Modified time: 2018-01-29 18:20:14
 */
 
 .meeting {
@@ -90,6 +90,9 @@
       .icon--4 {
         margin-left: 7px;
       }
+      .icon--8 {
+        font-size: 26px;
+      }
       .icon-current {
         background-color: #242424;
       }
@@ -103,8 +106,7 @@
       overflow: hidden;
       .inner {
         height: 100%;
-        display: flex; // justify-content: center;
-        // align-items: center;
+        display: flex;
         overflow-x: auto;
         overflow-y: hidden;
         margin: 0 auto;
@@ -219,8 +221,8 @@
     .board {
       height: 100%;
       flex: 8;
-
       position: relative;
+      background-color: #121b25;
       .insert-video {
         position: absolute;
         left: 50%;
@@ -641,10 +643,10 @@
         }
       }
       .officefile {
-        width: 800px;
-        height: 540px;
+        width: 600px;
+        height: 440px;
         max-width: 800px;
-        max-height: 530px;
+        max-height: 430px;
         position: absolute;
         left: 20px;
         top: 40px;
@@ -668,20 +670,72 @@
           }
         }
         .officefile-content {
-          max-height: 500px;
+          max-height: 400px;
           width: 100%;
-          overflow-y: scroll;
+          .element-content {
+            position: relative;
+          }
+          &::-webkit-scrollbar {
+            width: 5px;
+            height: 100%;
+            border-radius: 0px;
+            background-color: #fff;
+          }
+          &::-webkit-scrollbar-thumb {
+            min-height: 5px;
+            min-width: 5px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            background-color: #dddddd;
+          }
           img {
             width: 100%;
             vertical-align: middle;
           }
+          .iframePPT {
+            width: 100%;
+            height: 373px;
+          }
+          .element-board {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 35px);
+          }
         }
         .officefile-footer {
-          height: 40px;
+          height: 35px;
           color: #fff;
-          line-height: 40px;
+          line-height: 35px;
           background-color: #3d424e;
           text-align: center;
+          font-size: 15px;
+          .page-btn {
+            padding: 0px 25px;
+            cursor: pointer;
+            display: inline-block;
+            &::after {
+              content: "";
+              position: relative;
+              top: 12px;
+              width: 0;
+              height: 0;
+              border: 6px solid rgb(255, 255, 255);
+              border-left-color: transparent;
+              border-right-color: transparent;
+              border-bottom-color: transparent;
+            }
+          }
+          .page-last {
+            transform: rotate(90deg);
+          }
+          .page-next {
+            transform: rotate(-90deg);
+          }
+          .page-num {
+            padding: 0 8px;
+          }
         }
       }
     }

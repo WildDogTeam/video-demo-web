@@ -170,15 +170,6 @@ export function uploadClient(params) {
 
   uploader.init();
 
-
-  console.log(uploader);
-  uploader.bind('FilesAdded', function (uploader, files) {
-    console.log('FilesAdded!', files);
-    uploader.start();
-    //每个事件监听函数都会传入一些很有用的参数，
-    //我们可以利用这些参数提供的信息来做比如更新UI，提示上传进度等操作
-  });
-
   uploader.bind('UploadProgress', function (uploader, file) {
     console.log('Progress:', file.percent, "%");
     //每个事件监听函数都会传入一些很有用的参数，

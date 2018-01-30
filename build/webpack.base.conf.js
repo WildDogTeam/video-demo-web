@@ -1,4 +1,4 @@
-var path = require('path')
+ var path = require('path')
 var utils = require('./utils')
 var config = require('../config')
 var vueLoaderConfig = require('./vue-loader.conf')

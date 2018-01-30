@@ -1,52 +1,30 @@
 <template>
   <div class="meeting">
-    <div class="head">
-      <div class="roomId">房间号：{{ roomId }}</div>
-      <div class="time"><i class="icon-2"></i> {{ time }}</div>
-      <ul class="right clearfix">
-        <li class="item" ref="copy" style="opacity: 0;">{{ windowUrl }}</li>
-        <li class="item copy" @click="copy"><i class="icon icon-16"></i><span>邀请他人</span></li>
-        <router-link to="/call" tag="li" class="item">离开房间</router-link>
-      </ul>
-    </div>
+    <v-head :time="time" @copy="copy"></v-head>
     <ul class="features clearfix">
-      <li class="full-item"><i class="icon icon--4" @click="openDocument"></i></li>
-      <li class="full-item"><i class="icon icon--3" @click="sorry"></i></li>
-      <li class="full-item"><i class="icon icon--7" @click="sorry"></i></li>
-      <!-- <li class="full-item"><i class="icon icon-6" @click="sorry"></i></li> -->
+      <li class="full-item">
+        <i class="icon icon--4" @click="openDocument"></i>
+      </li>
+      <li class="full-item">
+        <i class="icon icon--8" @click="sorry"></i>
+      </li>
+      <li class="full-item">
+        <i class="icon icon--7" @click="sorry"></i>
+      </li>
+      <li class="full-item">
+        <i class="icon icon-6" @click="sorry"></i>
+      </li>
     </ul>
     <div class="content">
-      <div class="video-box">
-        <ul class="inner clearfix">
-          <li class="item">
-            <video muted autoplay="autoplay" ref="localStream" :controls="isMobile && (isFF || isSafari)"></video>
-            <div class="controls">
-              <span class="name">{{ name }}</span>
-              <div class="wrap">
-                <!-- <span class="translate" @click="switchCamera"><i class="icon-"></i></span> -->
-                <span class="media" @click="enableAudio"><i class="icon-"></i></span>
-                <span class="video" @click="enableVideo"><i class="icon-"></i></span>
-              </div>
-            </div>
-          </li>
-          <li class="item" v-for='(item, index) in participants' :key="item.streamId">
-            <video autoplay="autoplay" ref="remoteStream" :controls="isMobile && (isFF || isSafari)"></video>
-            <div class="controls">
-              <span class="name" ref="name">{{item.attributes.name || 'May'}}</span>
-              <div class="wrap clearfix">
-                <span class="media" @click="enableAudio"><i class="icon-" :data-stream="index"></i></span>
-                <span class="video" @click="enableVideo"><i class="icon-" :data-stream="index"></i></span>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
+      <v-videoBox :name="name" :token="token" :dimension="dimension" :document='document' ref="videoBox" @addInsertStream='addInsertStream' @removeInsertStream='removeInsertStream'></v-videoBox>
       <div class="features-others">
         <div class="board" ref="board">
-          <div id="canvas"></div>
+          <div id="canvas" @click="onBoardChange(boardObj.bigBoard)"></div>
           <div class="tool">
             <ul class="tool-bar">
-              <li class="item" v-for=" item in toolBar" :key="item.type" @click="addToolListener(item)" :class="{ 'current': item.active }"><i class="icon" :class="item.class"></i></li>
+              <li class="item" v-for=" item in toolBar" :key="item.type" @click="addToolListener(item)" :class="{ 'current': item.active }">
+                <i class="icon" :class="item.class"></i>
+              </li>
               <input ref="Image" type="file" id="Image" accept="image/png,image/gif,image/jpeg">
             </ul>
             <div class="tool-style" :class="{ 'open-style': openStyle }">
@@ -71,10 +49,12 @@
               <li class="head-close" @click="document.status = false"><i class="icon-25"></i></li>
             </ul>
             <div class="upload-content">
+              <upload-office v-show="!document.currentTab" :upload-office-data="document.officeFiles" class="documents" @delOfficeFile="delOfficeFile" @useOfficeFile="useOfficeFile"></upload-office>
               <upload-videos v-show="document.currentTab" :upload-video-data='document.videoFiles' :room-id='roomId' @operateVideoSuccess='operateVideoSuccess' @useVideoSuccess='useVideoSuccess'></upload-videos>
               <v-loading v-show="document.loading" @waitingLoading="waitingLoading"></v-loading>
             </div>
           </div>
+          <office-file :currentFile="currentFile" :boardRef="boardRef" :boardObj="boardObj" @onBoardChange="onBoardChange" @delCurrentFile="delCurrentFile" @pageLast="pageLast" @pageNext="pageNext"></office-file>
           <div class="insert-video" v-show="document.videoFiles.externalInputs.length !== 0">
             <div class="video-header"> <span class="title">{{  document.videoFiles.video.name }} </span>
               <!-- <span class="close"><i class="icon-25"></i></span> -->
@@ -111,48 +91,57 @@
   </div>
 </template>
 <script>
+import config from "config";
 import { mapGetters } from "vuex";
+import { realSysTime } from "@/utils";
+import { getList, controlFile } from 'api/uploadVideo';
+import { genToken, initImageUpload, uploadClient } from "@/utils/qiniu";
 
 import base from "wilddog-video-base";
 import room from "wilddog-video-room";
 import WildBoard from "wilddog-board";
+const wilddogVideo = base.wilddogVideo;
+wilddogVideo.regService("room", room);
+window.WildBoard = WildBoard;
+
+import meetingHead from "./meetingHead";
+import videoBox from "./videoBox";
+import uploadOffice from "./uploadOffice";
+import officeFileBox from "./officeFile";
+import uploadVideos from "./uploadVideos";
+import "./index.scss";
+
 import dialog from "@/components/Dialog";
 import loading from "@/components/Loading";
-import uploadVideos from "./uploadVideos";
-import { realSysTime } from "@/utils";
-import { getList, controlFile } from 'api/uploadVideo';
 
-import { genToken, initImageUpload, uploadClient } from "@/utils/qiniu";
 import "@/assets/libs/qiniu.min";
 import "@/assets/libs/plupload/js/moxie";
 import "@/assets/libs/plupload/js/plupload.full.min.js";
-import "@/assets/libs/plupload/js/i18n/zh_CN";
-import config from "config";
-import './index.scss'
-
-const wilddogVideo = base.wilddogVideo;
-wilddogVideo.regService("room", room);
 
 export default {
   name: "meeting",
   components: {
+    "v-head": meetingHead,
+    "v-videoBox": videoBox,
     "v-dialog": dialog,
+    "v-loading": loading,
+    "upload-office": uploadOffice,
+    "office-file": officeFileBox,
     'upload-videos': uploadVideos,
-    'v-loading': loading
   },
   data() {
     return {
-      roomId: "",
+      roomId: this.$route.query.roomId,
       time: "00:00:00",
-      windowUrl: null,
-      localStream: null,
-      participants: [],
       showDialog: false,
       document: {
         status: false,
         loading: false,
         currentTab: false,
-        officeFiles: {},
+        officeFiles: {
+          isEmpty: true,
+          fileLists: {}
+        },
         videoFiles: {
           isEmpty: true,
           list: [],
@@ -164,9 +153,8 @@ export default {
           }
         }
       },
-      isMobile: /Mobile/i.test(navigator.userAgent),
-      isFF: navigator.userAgent.indexOf("Firefox") > -1,
-      isSafari: navigator.userAgent.indexOf("Safari") > -1 && navigator.userAgent.indexOf("Chrome") < 1,
+      currentFile: {},
+      boardObj: {},
       dialogOption: {
         width: "300px",
         height: "200px",
@@ -176,6 +164,7 @@ export default {
         confirmButtonText: "确定"
       },
       users: null,
+      wdBoard: {},
       strokeColor: [{
           color: "rgb(252,61,57)",
           active: true
@@ -312,41 +301,16 @@ export default {
     };
   },
   created() {
-    this.getVideoList()
-
-    let roomName = location.hash.split("?")[1];
-    roomName = roomName.replace("roomId=", "").split("&")[0];
-    this.roomId = decodeURI(roomName);
-
-    this.windowUrl = `https://www.wilddog.com/demo/wilddogvideo/#/login`;
     this.userRef = wilddog.sync().ref(`room/${this.roomId}/users/`);
     this.boardRef = wilddog.sync().ref(`room/${this.roomId}/board`);
     this.chatRef = wilddog.sync().ref(`room/${this.roomId}/chat`);
     this.documentRef = wilddog.sync().ref(`room/${this.roomId}/document`);
 
-    if (!wilddogVideo.appId) {
-      wilddogVideo.initialize({
-        appId: config.wd.videoAppid,
-        token: this.token
-      });
-    }
 
-    this.roomInstance = wilddogVideo.room(this.roomId);
-    // this.roomInstance.connect();
-
-    //创建一个同时有音频和视频的媒体流
-    wilddogVideo
-      .createLocalStream({
-        captureAudio: false,
-        captureVideo: true,
-        dimension: this.dimension,
-        maxFPS: 15
-      })
-      .then(localStream => {
-        this.localStream = localStream;
-        this.localStream.setAttributes({ 'isExternalInput': false, 'name': this.name });
-        this.localStream.attach(this.$refs.localStream);
-      });
+    this.getVideoList()
+    this.getOfficeLists();
+    //获取当前打开的文档
+    this.getCurrentFile();
 
     this.$nextTick(() => {
       let boardConfig = {
@@ -355,7 +319,7 @@ export default {
         write: true
       };
 
-      this.wdBoard = new WildBoard(
+      this.wdBoard = this.boardObj.bigBoard = new WildBoard(
         this.boardRef,
         this.uid,
         "canvas",
@@ -385,24 +349,9 @@ export default {
         if (msg) msg.scrollTop = msg.childNodes.length * 56;
       });
     });
-
-    //获取office列表
-    this.documentRef.on("value", snapshot => {
-      const data = snapshot.val() && snapshot.val().officeFiles;
-      for (const key in data) {
-        if (data.hasOwnProperty(key)) {
-          const element = data[key];
-          if (element.date + 86400000 < Date.now()) {
-            this.documentRef.child(`officeFiles/${element}`).remove();
-            return;
-          }
-        }
-      }
-      this.document.officeFiles = data;
-    });
-
   },
   mounted() {
+    window.addEventListener("beforeunload", event => this.leaveRoom());
     window.onresize = () => {
       this.wdBoard.setOption({
         width: this.$refs.board.clientWidth,
@@ -413,11 +362,21 @@ export default {
 
     this.updateTime();
     this.addUid();
+
     const uploader = uploadClient();
+
+    uploader.bind("FilesAdded", (uploader, files) => {
+      this.document.loading = true;
+      // console.log("FilesAdded!", files);
+      uploader.start();
+      //每个事件监听函数都会传入一些很有用的参数，
+      //我们可以利用这些参数提供的信息来做比如更新UI，提示上传进度等操作
+    });
 
     uploader.bind("FileUploaded", (uploader, file, result) => {
       var status = JSON.parse(result.response).status;
       var results = JSON.parse(result.response).results;
+      // console.log(results);
       if (status == "success") {
         results.date = Date.now();
         this.documentRef
@@ -425,7 +384,8 @@ export default {
           .push(results)
           .then(() => {
             if (results.errors.length == 0) {
-              alert("上传成功！");
+              this.document.loading = false;
+              // alert("上传成功！");
             } else {
               alert("上传成功！部分页码转码失败！");
             }
@@ -439,7 +399,7 @@ export default {
     });
   },
   beforeDestroy() {
-    // this.leaveRoom();
+    this.leaveRoom();
   },
   methods: {
     getVideoList() {
@@ -453,17 +413,6 @@ export default {
     },
     // 复制
     copy(e) {
-      if (window.getSelection) {
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        const range = document.createRange();
-        range.selectNodeContents(this.$refs.copy);
-        sel.addRange(range);
-      } else if (document.selection) {
-        const textRange = document.body.createTextRange();
-        textRange.moveToElementText(this.$refs.copy);
-        textRange.select();
-      }
       try {
         document.execCommand("copy", "false", null);
         this.dialogOption.text = "地址已复制到剪贴板";
@@ -481,43 +430,6 @@ export default {
         alert("please press Ctrl/Cmd+C to copy");
       }
     },
-    switchCamera(e) {
-      this.roomInstance.switchCamera(this.localStream, this.$refs.localStream);
-    },
-    enableAudio(e) {
-      const dataStream = e.target.attributes["data-stream"];
-      const index = dataStream ? dataStream.value : null;
-      if (this.toggleIcon(e)) {
-        if (index) {
-          this.participants[index].enableAudio(true);
-        } else {
-          this.localStream.enableAudio(true);
-        }
-      } else {
-        if (index) {
-          this.participants[index].enableAudio(false);
-        } else {
-          this.localStream.enableAudio(false);
-        }
-      }
-    },
-    enableVideo(e) {
-      const dataStream = e.target.attributes["data-stream"];
-      const index = dataStream ? dataStream.value : null;
-      if (this.toggleIcon(e)) {
-        if (index) {
-          this.participants[index].enableVideo(true);
-        } else {
-          this.localStream.enableVideo(true);
-        }
-      } else {
-        if (index) {
-          this.participants[index].enableVideo(false);
-        } else {
-          this.localStream.enableVideo(false);
-        }
-      }
-    },
     sorry() {
       this.dialogOption.text = "该功能正在开发中，敬请期待";
       this.showDialog = true;
@@ -529,65 +441,6 @@ export default {
         .catch(() => {
           this.showDialog = false;
         });
-    },
-    toggleIcon(e) {
-      if (e.target.parentElement.className.indexOf("current") == -1) {
-        e.target.parentElement.className += " current";
-        return false;
-      } else {
-        e.target.parentElement.className = e.target.parentElement.className.replace(
-          "current",
-          ""
-        );
-        return true;
-      }
-    },
-
-    _addStream(stream) {
-      if (stream.attributes.isExternalInput == false) {
-        this.participants.push(stream);
-        this._displayStreams(this.participants);
-      } else {
-        this.document.status = false;
-
-        if (this.document.videoFiles.externalInputs.length == 0) {
-          this.document.videoFiles.externalInputs.push(stream);
-        } else {
-          this.document.videoFiles.externalInputs.splice(0, 1, stream);
-        }
-
-        //插播流不是自己的，底部的功能栏去掉
-        if (this.document.videoFiles.externalInputs[0].streamOwners[0].userId == this.uid) {
-          this.document.videoFiles.video.funcsShow = true
-        }
-
-        this.$nextTick(() => {
-          stream.attach(this.$refs.insertStream)
-        });
-      }
-    },
-
-    _removeStream(stream) {
-      this.participants.map((element, index) => {
-        if (element.streamId == stream.streamId) {
-          this.participants.splice(index, 1);
-          this._displayStreams(this.participants);
-        }
-      });
-
-      if (this.document.videoFiles.externalInputs.length !== 0 && stream.streamId == this.document.videoFiles.externalInputs[0].streamId) {
-        this.document.videoFiles.externalInputs = []
-
-      }
-
-    },
-
-    _displayStreams(participant) {
-      for (let i = 0; i < participant.length; i++) {
-        this.$nextTick(() => {
-          participant[i].attach(this.$refs.remoteStream[i]);
-        });
-      }
     },
     //房间时间
     updateTime() {
@@ -613,22 +466,16 @@ export default {
     removeUid() {
       this.userRef.child(this.uid).remove();
     },
+
     leaveRoom() {
       window.onresize = null;
-      if (this.localStream) this.localStream.close();
-      try {
-        this.roomInstance.disconnect();
-      } catch (e) {
-        console.log(e);
-      }
+      this.$refs.videoBox.$emit("leaveRoom");
       this.removeUid();
       this.userRef.once("value", snapshot => {
         const data = snapshot.val();
-        if (!data)
-          wilddog
-          .sync()
-          .ref(`room/${this.roomId}`)
-          .remove();
+        if (!data) {
+          wilddog.sync().ref(`room/${this.roomId}`).remove();
+        }
       });
     },
     addToolListener(tool) {
@@ -766,6 +613,7 @@ export default {
         this.messageVal = "";
       }
     },
+
     delOfficeFile(type, key) {
       this.documentRef.child(`${type == 'office' ? 'officeFiles' : 'videoFiles'}/${key}`).remove();
     },
@@ -799,33 +647,100 @@ export default {
     waitingLoading() {
 
     },
-  },
-  watch: {
-    localStream: function(argument) {
-      this.roomInstance.connect();
-      this.roomInstance.on("connected", () => {
-        console.log("connected success");
-        this.roomInstance.publish(this.localStream, () => {
-          console.log("publish success");
-        });
-        this.roomInstance.on("stream_added", stream => {
-          this.roomInstance.subscribe(stream, err => {
-            if (err == null) {
-              console.log("subscribe success");
+    openDocument() {
+      this.document.status = true;
+    },
+    getOfficeLists() {
+      //获取office列表
+      this.documentRef.on("value", snapshot => {
+        const data = snapshot.val() && snapshot.val().officeFiles;
+        for (const key in data) {
+          if (data.hasOwnProperty(key)) {
+            const element = data[key];
+            if (element.date + 86400000 < Date.now()) {
+              this.documentRef.child(`officeFiles/${element}`).remove();
+              return;
             }
-          });
-        });
-
-        this.roomInstance.on("stream_received", stream => {
-          this._addStream(stream);
-        });
-
-        this.roomInstance.on("stream_removed", stream => {
-          console.log("stream_removed");
-          this._removeStream(stream);
-        });
+          }
+        }
+        this.document.officeFiles.isEmpty = data ? false : true;
+        this.document.officeFiles.fileLists = data;
       });
+    },
+    getCurrentFile() {
+      this.boardRef.child(`currentFile`).on("value", snapshot => {
+        this.currentFile = snapshot.val();
+      });
+    },
+    useOfficeFile(key) {
+      this.document.status = false;
+      var data = this.document.officeFiles.fileLists[key];
+      data.currentPage = 1;
+      data.index = 1;
+      data.top = `30px`;
+      data.left = `30px`;
+      this.boardRef.child(`currentFile`).set(null);
+      this.boardRef.child(`currentFile`).push(data);
+    },
+    delOfficeFile(key) {
+      this.dialogOption.text = "确认删除所选文档";
+      this.showDialog = true;
+      this.$refs.dialog
+        .confirm()
+        .then(() => {
+          this.documentRef.child(`officeFiles/${key}`).remove();
+          if (this.currentFile[key]) {
+            this.boardRef.child(`currentFile${key}`).remove();
+          }
+          this.showDialog = false;
+        })
+        .catch(() => {
+          this.showDialog = false;
+        });
+    },
+    delCurrentFile(key) {
+      // console.log(key);
+      this.boardRef.child(`currentFile/${key}`).remove();
+    },
+    pageLast(key) {
+      if (this.currentFile[key].currentPage > 1) {
+        this.currentFile[key].currentPage--;
+        this.wdBoard.changePage(this.currentFile[key].currentPage - 1);
+        this.boardRef
+          .child(`currentFile/${key}/currentPage`)
+          .set(this.currentFile[key].currentPage);
+      }
+    },
+    pageNext(key) {
+      if (
+        this.currentFile[key].currentPage < this.currentFile[key].info.Pages
+      ) {
+        this.currentFile[key].currentPage++;
+        this.wdBoard.changePage(this.currentFile[key].currentPage - 1);
+        this.boardRef.child(`currentFile/${key}/currentPage`).set(this.currentFile[key].currentPage);
+      }
+    },
+    onBoardChange(object) {
+      this.wdBoard = object;
+    },
+
+    addInsertStream(stream) {
+      this.document.status = false;
+      if (this.document.videoFiles.externalInputs.length == 0) {
+        this.document.videoFiles.externalInputs.push(stream);
+      } else {
+        this.document.videoFiles.externalInputs.splice(0, 1, stream);
+      }
+
+      //插播流不是自己的，底部的功能栏去掉
+      if (this.document.videoFiles.externalInputs[0].streamOwners[0].userId == this.uid) {
+        this.document.videoFiles.video.funcsShow = true
+      }
+    },
+    removeInsertStream() {
+      this.document.videoFiles.externalInputs = []
     }
+
   },
   computed: {
     ...mapGetters(["name", "token", "uid", "dimension"])

@@ -57,7 +57,7 @@ export default {
   components: {
     "v-head": meetingHead,
     "v-videoBox": videoBox,
-    "v-board": board,    
+    "v-board": board,
     "v-dialog": dialog
   },
   data() {
@@ -146,10 +146,7 @@ export default {
         } else {
           const date = new Date().getTime();
           setInterval(() => {
-            this.time =
-              snapshot.val() > date ?
-              realSysTime(date) :
-              realSysTime(snapshot.val());
+            this.time = snapshot.val() > date ? realSysTime(date) : realSysTime(snapshot.val());
           }, 1000);
         }
       });
@@ -182,7 +179,7 @@ export default {
         this.messageVal = "";
       }
     },
-    openDocument(){
+    openDocument() {
       this.$refs.board.$emit('openDocument');
     }
   },
@@ -193,6 +190,5 @@ export default {
 
 </script>
 <style rel="stylesheet/scss" lang="scss">
-
 
 </style>

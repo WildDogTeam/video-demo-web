@@ -70,6 +70,8 @@
 <script>
 import config from "config";
 import { mapGetters } from "vuex";
+import Bus from './Bus.js';
+
 import { getList, controlFile } from "api/uploadVideo";
 import { genToken, initImageUpload, uploadClient } from "@/utils/qiniu";
 
@@ -93,7 +95,6 @@ export default {
     "upload-videos": uploadVideos,
     "v-loading": loading
   },
-  props: {},
   data() {
     return {
       roomId: this.$route.query.roomId,
@@ -303,7 +304,7 @@ export default {
       this.removeInsertStream();
     });
     console.log("document");
-    this.$emit("send-document", this.document);
+    Bus.$emit("send-document", this.document);
   },
   mounted() {
     window.onresize = () => {
@@ -373,16 +374,17 @@ export default {
           selectedObject.removeFromCanvas();
           return false;
         }
-        this.dialogOption.text = "确定清空全部内容？";
-        this.showDialog = true;
-        this.$refs.dialog
+        console.log(this);
+        this.$parent.dialogOption.text = "确定清空全部内容？";
+        this.$parent.showDialog = true;
+        this.$parent.$refs.dialog
           .confirm()
           .then(() => {
-            this.showDialog = false;
+            this.$parent.showDialog = false;
             this.wdBoard.clearPage(this.wdBoard.currentPage());
           })
           .catch(() => {
-            this.showDialog = false;
+            this.$parent.showDialog = false;
           });
         return false;
       }
@@ -559,19 +561,19 @@ export default {
       this.boardRef.child(`currentFile`).push(data);
     },
     delOfficeFile(key) {
-      this.dialogOption.text = "确认删除所选文档";
-      this.showDialog = true;
-      this.$refs.dialog
+      this.$parent.dialogOption.text = "确认删除所选文档";
+      this.$parent.showDialog = true;
+      this.$parent.$refs.dialog
         .confirm()
         .then(() => {
           this.documentRef.child(`officeFiles/${key}`).remove();
           if (this.currentFile[key]) {
             this.boardRef.child(`currentFile${key}`).remove();
           }
-          this.showDialog = false;
+          this.$parent.showDialog = false;
         })
         .catch(() => {
-          this.showDialog = false;
+          this.$parent.showDialog = false;
         });
     },
     delCurrentFile(key) {

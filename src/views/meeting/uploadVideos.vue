@@ -2,9 +2,9 @@
   <div class="videos">
     <ul class="content-item">
       <li class="upload-input">
-        <div class="file-button">上传</div>
+        <div class="file-button"><i class="icon--17">&nbsp;</i>上传</div>
         <input type="file" class="file-input" accept="audio/mpeg,audio/mp4,video/mp4" @change='uploadVideoFile($event)'>
-        <div class="file-info"><i></i>支持上传mp3、mp4</div>
+        <div class="file-info"><i class="icon--15"></i>支持上传mp3、mp4</div>
         <div class="refresh" @click='refresh'>刷新</div>
       </li>
       <li class="upload-title">

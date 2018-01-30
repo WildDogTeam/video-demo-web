@@ -1,10 +1,12 @@
 <template>
   <ul class="content-item">
     <li class="upload-input">
-      <div class="file file-button">上传</div>
+      <div class="file file-button">
+        <i class="icon--17">&nbsp;</i>上传</div>
       <button id="officeUpload" class="file-input">上传文件</button>
       <div class="file-info">
-        <i></i>支持上传pdf、doc、docx、ppt、pptx、pptm</div>
+        <i class="icon--15"></i>支持上传pdf、doc、docx、ppt、pptx、pptm</div>
+
     </li>
     <li class="upload-title">
       <div class="file-div">文件名</div>

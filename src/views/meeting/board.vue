@@ -52,6 +52,7 @@
           <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span>
         </div>
         <div class="time">{{this.document.videoFiles.video.curTime}}/00:00:00</div>
+
       </div>
     </div>
   </div>
@@ -382,18 +383,14 @@ export default {
           selectedObject.removeFromCanvas();
           return false;
         }
-        console.log(this);
         this.$parent.dialogOption.text = "确定清空全部内容？";
         this.$parent.showDialog = true;
-        this.$parent.$refs.dialog
-          .confirm()
-          .then(() => {
-            this.$parent.showDialog = false;
-            this.wdBoard.clearPage(this.wdBoard.currentPage());
-          })
-          .catch(() => {
-            this.$parent.showDialog = false;
-          });
+        this.$parent.$refs.dialog.confirm().then(() => {
+          this.$parent.showDialog = false;
+          this.wdBoard.clearPage(this.wdBoard.currentPage());
+        }).catch(() => {
+          this.$parent.showDialog = false;
+        });
         return false;
       }
       this.currentTool.type = tool.type;
@@ -534,7 +531,6 @@ export default {
     openDocument() {
       this.document.status = true;
     },
-
     getOfficeLists() {
       //获取office列表
       this.documentRef.on("value", snapshot => {
@@ -565,7 +561,7 @@ export default {
       data.currentPage = 1;
       data.index = 1;
       data.top = `30px`;
-      data.left = `30px`;
+      data.left = `80px`;
       this.boardRef.child(`currentFile`).set(null);
       this.boardRef.child(`currentFile`).push(data);
     },
@@ -596,9 +592,7 @@ export default {
       if (this.currentFile[key].currentPage > 1) {
         this.currentFile[key].currentPage--;
         this.wdBoard.changePage(this.currentFile[key].currentPage - 1);
-        this.boardRef
-          .child(`currentFile/${key}/currentPage`)
-          .set(this.currentFile[key].currentPage);
+        this.boardRef.child(`currentFile/${key}/currentPage`).set(this.currentFile[key].currentPage);
       }
     },
 

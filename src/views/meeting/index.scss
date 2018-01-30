@@ -1,8 +1,8 @@
 /*
 * @Author: liujie3612
 * @Date:   2018-01-26 14:43:29
-* @Last Modified by:   liujie3612
-* @Last Modified time: 2018-01-29 18:20:14
+ * @Last Modified by: ihoey
+ * @Last Modified time: 2018-01-30 15:43:12
 */
 
 .meeting {
@@ -489,17 +489,25 @@
                 width: 80px;
                 height: 35px;
                 line-height: 35px;
-                padding-right: 20px;
+                padding-right: 15px;
                 text-align: right;
                 background-color: #66afff;
                 border-radius: 5px;
+                .icon--17{
+                  font-size: 13px;
+                }
               }
               .file-info {
                 color: #919193;
                 height: 100%;
                 font-size: 14px;
                 line-height: 3.5;
-                padding-left: 120px;
+                padding-left: 90px;
+                .icon--15 {
+                  position: relative;
+                  top: 2px;
+                  left: -2px;
+                }
               }
             }
             .upload-title {

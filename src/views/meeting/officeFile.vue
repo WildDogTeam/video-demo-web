@@ -159,7 +159,7 @@ export default {
     }
   },
   watch: {
-    currentFile: function(obj) {
+    currentFile: function (obj) {
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
           const element = obj[key];

@@ -47,6 +47,7 @@
 import { uploadFile, delFile, useFile } from 'api/uploadVideo';
 import { mapGetters } from "vuex";
 import config from "config";
+import Bus from './Bus.js';
 
 export default {
   name: 'uploadVideos',
@@ -73,6 +74,7 @@ export default {
 
   methods: {
     uploadVideoFile(e) {
+      Bus.$emit("waitingLoading");
       let file = e.target.files[0]
       let payload = new FormData();
       payload.append('appId', config.wd.videoAppid);
@@ -80,10 +82,8 @@ export default {
       payload.append('token', this.token);
       payload.append('alias', '');
       payload.append('file', file);
-
       uploadFile(payload).then(response => {
         const data = response.data
-        console.log(data)
         if (data.code == 0) {
           this.$emit("operateVideoSuccess");
         }
@@ -95,7 +95,6 @@ export default {
     delVideoFile(id) {
       delFile(config.wd.videoAppid, this.uid, id, this.token).then(response => {
         const data = response.data
-        console.log(data)
         if (data.code == 0) {
           this.$emit("operateVideoSuccess");
         }

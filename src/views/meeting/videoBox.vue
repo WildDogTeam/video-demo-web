@@ -71,7 +71,7 @@ export default {
     }).then(localStream => {
       this.localStream = localStream;
       this.localStream.setAttributes({
-        isExternalInput: false,
+        // isExternalInput: false,
         name: this.name
       });
       this.$nextTick(() => {
@@ -94,11 +94,11 @@ export default {
   },
   methods: {
     _addStream(stream) {
-      if (stream.attributes.isExternalInput == false) {
+      if (stream.attributes.isExternalInput == true) {
+        Bus.$emit("addInsertStream", stream);
+      } else {
         this.participants.push(stream);
         this._displayStreams(this.participants);
-      } else {
-        Bus.$emit("addInsertStream", stream);
       }
     },
 

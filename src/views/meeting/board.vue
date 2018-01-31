@@ -34,7 +34,7 @@
       <div class="upload-content">
         <upload-office v-show="!document.currentTab" :upload-office-data="document.officeFiles" class="documents" @delOfficeFile="delOfficeFile" @useOfficeFile="useOfficeFile"></upload-office>
         <upload-videos v-show="document.currentTab" :upload-video-data='document.videoFiles' :room-id='roomId' @operateVideoSuccess='operateVideoSuccess' @useVideoSuccess='useVideoSuccess'></upload-videos>
-        <v-loading v-show="document.loading" @waitingLoading="waitingLoading"></v-loading>
+        <v-loading v-show="document.loading"></v-loading>
       </div>
     </div>
     <office-file :currentFile="currentFile" :boardRef="boardRef" :boardObj="boardObj" @onBoardChange="onBoardChange" @delCurrentFile="delCurrentFile" @pageLast="pageLast" @pageNext="pageNext"></office-file>
@@ -51,8 +51,7 @@
           <span class="func replay" @click="controlInsertVideo('replay')"><i class="icon icon--18"></i></span>
           <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span>
         </div>
-        <div class="time">{{this.document.videoFiles.video.curTime}}/00:00:00</div>
-
+        <div class="time">{{this.document.videoFiles.video.curTime}}s/{{this.document.videoFiles.video.totalTime}}s</div>
       </div>
     </div>
   </div>
@@ -104,7 +103,8 @@ export default {
             name: "",
             play: true,
             funcsShow: false,
-            curTime: 0
+            curTime: 0,
+            totalTime: 0
           }
         }
       },
@@ -250,7 +250,7 @@ export default {
     wilddog.sync().ref(`room/${this.roomId}/curFile`).on('value', (snap) => {
       if (snap.val()) {
         this.document.videoFiles.video.name = snap.val().name
-        this.document.videoFiles.video.status = snap.val().status
+        this.document.videoFiles.video.totalTime = snap.val().totalTime
       }
     })
 
@@ -286,7 +286,6 @@ export default {
     });
 
     this.$on("openDocument", () => {
-      console.log("openDocument");
       this.openDocument();
     });
 
@@ -295,7 +294,7 @@ export default {
     });
 
     Bus.$on("removeInsertStream", () => {
-      this.removeInsertStream();
+      this.document.videoFiles.externalInputs = [];
     });
 
     Bus.$emit("send-document", this.document);
@@ -313,20 +312,20 @@ export default {
       this.document.videoFiles.video.curTime = parseInt(this.$refs.insertStream.currentTime)
     }
 
+    Bus.$on('waitingLoading', () => {
+      this.document.loading = true;
+    })
+
     const uploader = uploadClient();
 
     uploader.bind("FilesAdded", (uploader, files) => {
       this.document.loading = true;
-      // console.log("FilesAdded!", files);
       uploader.start();
-      //每个事件监听函数都会传入一些很有用的参数，
-      //我们可以利用这些参数提供的信息来做比如更新UI，提示上传进度等操作
     });
 
     uploader.bind("FileUploaded", (uploader, file, result) => {
       var status = JSON.parse(result.response).status;
       var results = JSON.parse(result.response).results;
-      // console.log(results);
       if (status == "success") {
         results.date = Date.now();
         this.documentRef
@@ -354,7 +353,7 @@ export default {
       getList(config.wd.videoAppid, this.uid, this.token).then(response => {
         this.document.loading = false;
         let data = response.data;
-        console.log(data)
+        // console.log(data)
         if (Array.isArray(data)) {
           let syncData = []
           data.forEach((element, index) => {
@@ -502,7 +501,7 @@ export default {
       // this.document.videoFiles.video.curTime = this.$refs.insertStream.currentTime
 
       wilddog.sync().ref(`room/${this.roomId}/curFile`).set({
-        'name' : name
+        'name': name
       })
     },
     openDocument() {
@@ -619,15 +618,13 @@ export default {
       //插播流不是自己的，底部的功能栏去掉
       if (this.document.videoFiles.externalInputs[0].streamOwners[0].userId == this.uid) {
         this.document.videoFiles.video.funcsShow = true;
+      } else {
+        //同步总时间
+        wilddog.sync().ref(`room/${this.roomId}/curFile/totalTime`).set(stream.attributes.duration)
       }
+
       this.$refs.insertStream && stream.attach(this.$refs.insertStream);
-    },
-
-    removeInsertStream() {
-      this.document.videoFiles.externalInputs = [];
-    },
-
-    waitingLoading() {}
+    }
   },
   computed: {
     ...mapGetters(["name", "token", "uid", "dimension"])

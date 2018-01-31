@@ -16,7 +16,7 @@
       </li>
     </ul>
     <div class="content">
-      <v-videoBox :name="name" :token="token" :dimension="dimension" ref="videoBox"></v-videoBox>
+      <v-videoBox ref="videoBox"></v-videoBox>
       <div class="features-others">
         <v-board ref="board"></v-board>
         <div class="chat">

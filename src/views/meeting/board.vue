@@ -44,14 +44,14 @@
         <span class="close" @click="controlInsertVideo('stop')"><i class="icon-25"></i></span>
       </div>
       <video autoplay="autoplay" ref="insertStream"></video>
-      <div class="video-controls">
-        <div class="funcs" v-show='document.videoFiles.video.funcsShow'>
+      <div class="video-controls" v-show='document.videoFiles.video.funcsShow'>
+        <div class="funcs">
           <span class="func pause" @click="controlInsertVideo('pause')" v-show='document.videoFiles.video.play'><i class="icon icon--19"></i></span>
           <span class="func continue" @click="controlInsertVideo('continue')" v-show='!document.videoFiles.video.play'><i class="icon icon--20"></i></span>
           <span class="func replay" @click="controlInsertVideo('replay')"><i class="icon icon--18"></i></span>
           <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span>
         </div>
-        <div class="time">{{this.document.videoFiles.video.curTime}}s/{{this.document.videoFiles.video.totalTime}}s</div>
+        <div class="time">{{ document.videoFiles.video.num == 0 ? '00:00:00' : convertTime(document.videoFiles.video.num)}}/{{ document.videoFiles.video.totalTime}}</div>
       </div>
     </div>
   </div>
@@ -63,6 +63,7 @@ import Bus from './Bus.js';
 
 import { getList, controlFile } from "api/uploadVideo";
 import { genToken, initImageUpload, uploadClient } from "@/utils/qiniu";
+import { sec2time, time2sec } from "@/utils/index.js";
 
 import WildBoard from "wilddog-board";
 window.WildBoard = WildBoard;
@@ -103,8 +104,9 @@ export default {
             name: "",
             play: true,
             funcsShow: false,
-            curTime: 0,
-            totalTime: 0
+            num: 0,
+            totalTime: '00:00:00',
+            timer: null
           }
         }
       },
@@ -250,7 +252,6 @@ export default {
     wilddog.sync().ref(`room/${this.roomId}/curFile`).on('value', (snap) => {
       if (snap.val()) {
         this.document.videoFiles.video.name = snap.val().name
-        this.document.videoFiles.video.totalTime = snap.val().totalTime
       }
     })
 
@@ -308,10 +309,6 @@ export default {
       });
     };
 
-    this.$refs.insertStream.ontimeupdate = () => {
-      this.document.videoFiles.video.curTime = parseInt(this.$refs.insertStream.currentTime)
-    }
-
     Bus.$on('waitingLoading', () => {
       this.document.loading = true;
     })
@@ -348,6 +345,10 @@ export default {
     });
   },
   methods: {
+    convertTime(num) {
+      return sec2time(num)
+    },
+
     getVideoList() {
       this.document.loading = true;
       getList(config.wd.videoAppid, this.uid, this.token).then(response => {
@@ -498,8 +499,6 @@ export default {
     },
     useVideoSuccess(name) {
       this.document.status = false;
-      // this.document.videoFiles.video.curTime = this.$refs.insertStream.currentTime
-
       wilddog.sync().ref(`room/${this.roomId}/curFile`).set({
         'name': name
       })
@@ -512,19 +511,32 @@ export default {
       controlFile(config.wd.videoAppid, this.roomId, arg, this.document.videoFiles.externalInputs[0].streamId, this.token).then(response => {
         let data = response.data;
         switch (arg) {
-          case "stop":
-            this.document.videoFiles.externalInputs = [];
-            break;
           case "pause":
             this.document.videoFiles.video.play = false;
+            clearInterval(this.document.videoFiles.video.timer)
             break;
           case "continue":
             this.document.videoFiles.video.play = true;
+            this.document.videoFiles.video.timer = setInterval(() => {
+              if (this.document.videoFiles.video.num < time2sec(this.document.videoFiles.video.totalTime)) {
+                this.document.videoFiles.video.num++
+              }
+            }, 1000)
+            break;
+          case "replay":
+            this.document.videoFiles.video.num = 0
+            this.document.videoFiles.video.play = true;
+            break;
+          case "stop":
+            this.document.videoFiles.externalInputs = [];
+            clearInterval(this.document.videoFiles.video.timer)
+            this.document.videoFiles.video.num = 0
+            break;
+
           default:
             break;
         }
       });
-      // this.document.videoFiles.video.curTime = this.$refs.insertStream.currentTime
     },
 
     openDocument() {
@@ -615,12 +627,17 @@ export default {
         this.document.videoFiles.externalInputs.splice(0, 1, stream);
       }
 
-      //插播流不是自己的，底部的功能栏去掉
+      //插播流是自己的，底部的功能栏显示
       if (this.document.videoFiles.externalInputs[0].streamOwners[0].userId == this.uid) {
         this.document.videoFiles.video.funcsShow = true;
-      } else {
-        //同步总时间
-        wilddog.sync().ref(`room/${this.roomId}/curFile/totalTime`).set(stream.attributes.duration)
+        this.document.videoFiles.video.totalTime = sec2time(stream.attributes.duration)
+        this.document.videoFiles.video.num = 0;
+
+        this.document.videoFiles.video.timer = setInterval(() => {
+          if (this.document.videoFiles.video.num < stream.attributes.duration) {
+            this.document.videoFiles.video.num++
+          }
+        }, 1000)
       }
 
       this.$refs.insertStream && stream.attach(this.$refs.insertStream);

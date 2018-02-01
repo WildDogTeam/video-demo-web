@@ -180,7 +180,7 @@ export default {
       this.roomInstance.connect();
       this.roomInstance.on("connected", () => {
         console.log("connected success");
-        this.roomInstance.publish(this.localStream, () => {
+        this.roomInstance.publish(this.localStream, 'H264', () => {
           console.log("publish success");
         });
 

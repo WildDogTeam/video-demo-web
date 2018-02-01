@@ -2,7 +2,7 @@
  * @Author: liujie3612
  * @Date:   2018-01-25 15:19:52
  * @Last Modified by:   liujie3612
- * @Last Modified time: 2018-01-27 16:34:56
+ * @Last Modified time: 2018-02-01 17:47:54
  */
 import axios from 'axios';
 import fetch from 'utils/fetch';
@@ -21,7 +21,6 @@ export function uploadFile(data) {
   return axios.post('https://bt-sh-api.wilddog.com/v2/file', data)
 }
 
-
 export function delFile(appId, userId, id, token) {
   return fetch({
     url: '/v2/file',
@@ -30,14 +29,13 @@ export function delFile(appId, userId, id, token) {
   });
 }
 
-export function useFile(appId, roomId, fileId, token) {
+export function useFile(appId, roomId, fileId, token,codec) {
   return fetch({
     url: 'v2/externalInput/start',
     method: 'POST',
-    params: { appId, roomId, fileId, token }
+    params: { appId, roomId, fileId, token,codec }
   });
 }
-
 
 export function controlFile(appId, roomId, type, streamId, token) {
   return fetch({

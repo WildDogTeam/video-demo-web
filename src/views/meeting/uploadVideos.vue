@@ -102,7 +102,7 @@ export default {
     },
     useVideoFile(fileId, name) {
       if (this.uploadVideoData.externalInputs.length == 0) {
-        useFile(config.wd.videoAppid, this.roomId, fileId, this.token).then(response => {
+        useFile(config.wd.videoAppid, this.roomId, fileId, this.token, 'h264').then(response => {
           const data = response.data
           this.$emit("useVideoSuccess", name);
         })

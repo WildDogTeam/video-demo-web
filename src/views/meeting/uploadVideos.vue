@@ -14,7 +14,7 @@
         <div class="file-div">操作</div>
         <div class="file-div file-length">共{{uploadVideoData.list.length}}个文件</div>
       </li>
-      <li v-for="(item,index) in uploadVideoData.list" class="upload-title-content" :key="index">
+      <li v-for="(item,index) in uploadVideoData.list.slice().reverse()" class="upload-title-content" :key="index">
         <div class="file-div">{{ index + 1 }}</div>
         <div class="file-type-icon" :class="item.name | fileType"></div>
         <div class="file-div file-name">{{item.name}}</div>
@@ -72,8 +72,20 @@ export default {
 
   methods: {
     uploadVideoFile(e) {
-      Bus.$emit("waitingLoading");
+      Bus.$emit("waitingLoading", true);
       let file = e.target.files[0]
+      if (file.name.indexOf('mp3') === -1 || file.name.indexOf('mp4') === -1) {
+        this.$parent.$parent.dialogOption.text = "上传文件格式错误";
+        this.$parent.$parent.showDialog = true;
+        this.$parent.$parent.$refs.dialog.confirm().then(() => {
+          this.$parent.$parent.showDialog = false;
+          Bus.$emit("waitingLoading", false);
+        }).catch(() => {
+          this.$parent.$parent.showDialog = false;
+        });
+        return
+      }
+
       let payload = new FormData();
       payload.append('appId', config.wd.videoAppid);
       payload.append('userId', this.uid);
@@ -104,6 +116,9 @@ export default {
       }).catch(() => {
         this.$parent.$parent.showDialog = false;
       });
+
+
+
     },
     useVideoFile(fileId, name) {
       if (this.uploadVideoData.externalInputs.length == 0) {

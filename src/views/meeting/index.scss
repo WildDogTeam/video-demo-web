@@ -1,8 +1,8 @@
 /*
 * @Author: liujie3612
 * @Date:   2018-01-26 14:43:29
- * @Last Modified by:   liujie3612
- * @Last Modified time: 2018-02-02 15:50:05
+ * @Last Modified by: ihoey
+ * @Last Modified time: 2018-02-02 17:48:04
 */
 
 .meeting {
@@ -226,8 +226,7 @@
       .insert-video {
         background-color: #121b25;
         position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
+        left: 36%;
         top: 50px;
         .video-header {
           width: 480px;
@@ -238,6 +237,7 @@
           background-color: #3d424e;
           border-top-left-radius: 10px;
           border-top-right-radius: 10px;
+          cursor: move;
           .title {
             float: left;
           }

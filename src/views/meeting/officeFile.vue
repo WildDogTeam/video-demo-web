@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-for="(item, key) in currentFile" class="officefile" :key="key" :style="{top:item.top,left:item.left,zIndex:item.index}">
+    <div ref="officefile" v-for="(item, key) in currentFile" class="officefile" :key="key" :style="{top:item.top,left:item.left,zIndex:item.index}">
       <div class="officefile-head" @click="onBoardChangeCurrent(key)">
         <div class="officefile-title">{{ item.fileName | splitJoin }}</div>
         <div class="head-close" @click="delCurrentFile(key)">
@@ -24,6 +24,8 @@
   </div>
 </template>
 <script>
+import { drag } from "@/utils/index.js";
+
 export default {
   name: "officeFile",
   props: {
@@ -37,6 +39,13 @@ export default {
       currentBoard: "",
       pptSyncWs: ""
     };
+  },
+  mounted() {
+    this.$nextTick(()=>{
+      setTimeout(() => {
+        drag(this.$parent.$el, this.$refs['officefile'][0])
+      }, 2000);
+    })
   },
   updated() {
     this.boardRefs.child(`currentFile/${this.currentBoard}/currentPage`).once("value", snapshot => {

@@ -37,8 +37,8 @@
         <v-loading v-show="document.loading"></v-loading>
       </div>
     </div>
-    <office-file :currentFile="currentFile" :boardRef="boardRef" :boardObj="boardObj" @onBoardChange="onBoardChange" @delCurrentFile="delCurrentFile" @pageLast="pageLast" @pageNext="pageNext"></office-file>
-    <div class="insert-video" v-show="document.videoFiles.externalInputs.length !== 0">
+    <office-file :currentFile="currentFile" :boardRef="boardRef" :boardObj="boardObj" @onBoardChange="onBoardChange" @delCurrentFile="delCurrentFile" @pageLast="pageLast" @pageNext="pageNext" ref="officeBox"></office-file>
+    <div class="insert-video" v-show="document.videoFiles.externalInputs.length !== 0" ref="videoBox">
       <div class="video-header">
         <span class="title">{{ document.videoFiles.video.name }} </span>
         <span class="close" @click="controlInsertVideo('stop')">
@@ -74,7 +74,7 @@ import Bus from './Bus.js';
 
 import { getList, controlFile } from "api/uploadVideo";
 import { genToken, initImageUpload, uploadClient } from "@/utils/qiniu";
-import { sec2time, time2sec } from "@/utils/index.js";
+import { sec2time, time2sec, drag } from "@/utils/index.js";
 
 import WildBoard from "wilddog-board";
 window.WildBoard = WildBoard;
@@ -351,6 +351,7 @@ export default {
         alert("上传失败！");
       }
     });
+    drag(this.$refs.board, this.$refs.videoBox)
   },
   methods: {
     convertTime(num) {

@@ -16,7 +16,7 @@
       </li>
     </ul>
     <div class="content">
-      <v-videoBox :name="name" :token="token" :dimension="dimension" ref="videoBox"></v-videoBox>
+      <v-videoBox ref="videoBox"></v-videoBox>
       <div class="features-others">
         <v-board ref="board"></v-board>
         <div class="chat">
@@ -116,7 +116,7 @@ export default {
         });
       } catch (err) {
         console.log(err);
-        alert("please press Ctrl/Cmd+C to copy");
+        // alert("please press Ctrl/Cmd+C to copy");
       }
     },
     sorry() {
@@ -181,5 +181,6 @@ export default {
 
 </script>
 <style rel="stylesheet/scss" lang="scss">
+
 
 </style>

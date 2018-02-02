@@ -313,8 +313,8 @@ export default {
       });
     };
 
-    Bus.$on('waitingLoading', () => {
-      this.document.loading = true;
+    Bus.$on('waitingLoading', (display) => {
+      this.document.loading = display;
     })
 
     const uploader = uploadClient();

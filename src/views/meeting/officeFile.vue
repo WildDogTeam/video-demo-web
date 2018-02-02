@@ -39,23 +39,18 @@ export default {
     };
   },
   updated() {
-    this.boardRefs
-      .child(`currentFile/${this.currentBoard}/currentPage`)
-      .once("value", snapshot => {
-        if (snapshot.val()) {
-          const page = snapshot.val() ?
-            snapshot.val() - 1 == -1 ? 0 : snapshot.val() - 1 :
-            0;
-          this.$nextTick(() => {
-            if (
-              this.boardObj[this.currentBoard].currentPage() + 1 !=
-              snapshot.val()
-            ) {
-              this.boardObj[this.currentBoard].changePage(page);
-            }
-          });
-        }
-      });
+    this.boardRefs.child(`currentFile/${this.currentBoard}/currentPage`).once("value", snapshot => {
+      if (snapshot.val()) {
+        const page = snapshot.val() ? snapshot.val() - 1 == -1 ? 0 : snapshot.val() - 1 : 0;
+        this.$nextTick(() => {
+          if (
+            this.boardObj[this.currentBoard].currentPage() + 1 != snapshot.val()
+          ) {
+            this.boardObj[this.currentBoard].changePage(page);
+          }
+        });
+      }
+    });
   },
   methods: {
     delCurrentFile(key) {
@@ -71,16 +66,8 @@ export default {
       this.$emit("onBoardChange", object);
     },
     onBoardChangeCurrent(key) {
-      // console.log(key,'onBoardChangeCurrent');
       this.currentBoard = key;
-      // console.log(this.currentBoard);
       this.onBoardChange(this.boardObj[key]);
-      // for (const item in this.currentFile) {
-      //   if (this.currentFile.hasOwnProperty(item)) {
-      //     this.boardRef.child(`currentFile/${item}`).update({ index: 1 });
-      //   }
-      // }
-      // this.boardRef.child(`currentFile/${key}`).update({ index: 2 });
     },
     establishConnection(wsUrl) {
       var currentPageNumber = 0;
@@ -117,15 +104,11 @@ export default {
             resetDelayTimeout = null;
           }, 30000);
         };
-
         ws.onmessage = message => {
-          // console.log(message);
           if (message.data != "3") {
             var pageIndex = message.data.split(",")[0] - 1;
-            // console.log(pageIndex);
             if (currentPageNumber != pageIndex) {
               currentPageNumber = pageIndex;
-              // console.log(this.currentBoard,'onmessage');
               this.boardObj[this.currentBoard].changePage(pageIndex);
               this.boardRef
                 .child(`currentFile/${this.currentBoard}`)
@@ -159,12 +142,11 @@ export default {
     }
   },
   watch: {
-    currentFile: function (obj) {
+    currentFile: function(obj) {
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
           const element = obj[key];
           if (!this.boardObj[key]) {
-            // console.log('watch',key);
             this.currentBoard = key;
             this.$nextTick(() => {
               this.boardObj[key] = new WildBoard(
@@ -176,20 +158,9 @@ export default {
                   write: true
                 }
               );
-              //   console.log(this.boardObj[key]);
               this.onBoardChange(this.boardObj[key]);
               if (!element.info) {
-                // console.log(element);
-                // console.log(
-                //   `wss://pptsyncserver.wilddog.com/api/Ppt/?isListener=true&syn=${this.excludeSpecial(
-                //     element.fileName
-                //   )}&user=${Date.now()}`
-                // );
-                this.establishConnection(
-                  `wss://pptsyncserver.wilddog.com/api/Ppt/?isListener=true&syn=${this.excludeSpecial(
-                    element.fileName
-                  )}&user=${Date.now()}`
-                );
+                this.establishConnection(`wss://pptsyncserver.wilddog.com/api/Ppt/?isListener=true&syn=${this.excludeSpecial(element.fileName)}&user=${Date.now()}`);
               }
             });
           }

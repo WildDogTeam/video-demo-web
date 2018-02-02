@@ -18,8 +18,8 @@
         <div class="file-div">{{ index + 1 }}</div>
         <div class="file-type-icon" :class="item.name | fileType"></div>
         <div class="file-div file-name">{{item.name}}</div>
-        <div class="file-div size">{{item.size | readablizeBytes}}</div>
-        <div class="file-div date">{{item.createTime | parseTime}}</div>
+        <div class="file-div size">{{item.size | readablizeBytes(1)}}</div>
+        <div class="file-div date">{{item.createTime | parseTime('{y}/{m}/{d} {h}:{i}:{s}')}}</div>
         <div class="file-div">
           <div class="file-success" v-show="item.status == '3' && uploadVideoData.externalInputs.length == 0">
             <span class="file-ues" @click="useVideoFile(item.id,item.name)">使用</span>
@@ -68,9 +68,7 @@ export default {
 
     }
   },
-  created() {
-    // console.log(this.uploadVideoData)
-  },
+  created() {},
 
   methods: {
     uploadVideoFile(e) {
@@ -93,12 +91,19 @@ export default {
       this.$emit("operateVideoSuccess");
     },
     delVideoFile(id) {
-      delFile(config.wd.videoAppid, this.uid, id, this.token).then(response => {
-        const data = response.data
-        if (data.code == 0) {
-          this.$emit("operateVideoSuccess");
-        }
-      })
+      this.$parent.$parent.dialogOption.text = "确认删除所选文件？";
+      this.$parent.$parent.showDialog = true;
+      this.$parent.$parent.$refs.dialog.confirm().then(() => {
+        delFile(config.wd.videoAppid, this.uid, id, this.token).then(response => {
+          const data = response.data
+          if (data.code == 0) {
+            this.$emit("operateVideoSuccess");
+          }
+        })
+        this.$parent.$parent.showDialog = false;
+      }).catch(() => {
+        this.$parent.$parent.showDialog = false;
+      });
     },
     useVideoFile(fileId, name) {
       if (this.uploadVideoData.externalInputs.length == 0) {

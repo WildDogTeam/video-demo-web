@@ -176,14 +176,12 @@ export default {
   },
   watch: {
     localStream: function(argument) {
-      // console.log("watch-localStream");
       this.roomInstance.connect();
       this.roomInstance.on("connected", () => {
         console.log("connected success");
         this.roomInstance.publish(this.localStream, 'H264', () => {
           console.log("publish success");
         });
-
         this.roomInstance.on("stream_added", stream => {
           console.log("stream_added");
           this.roomInstance.subscribe(stream, err => {
@@ -192,14 +190,12 @@ export default {
             }
           });
         });
-
         this.roomInstance.on("stream_received", stream => {
           console.log("stream_received");
           this.$nextTick(() => {
             this._addStream(stream);
           });
         });
-
         this.roomInstance.on("stream_removed", stream => {
           console.log("stream_removed");
           this._removeStream(stream);

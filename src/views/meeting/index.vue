@@ -116,7 +116,7 @@ export default {
         });
       } catch (err) {
         console.log(err);
-        alert("please press Ctrl/Cmd+C to copy");
+        // alert("please press Ctrl/Cmd+C to copy");
       }
     },
     sorry() {
@@ -181,5 +181,6 @@ export default {
 
 </script>
 <style rel="stylesheet/scss" lang="scss">
+
 
 </style>

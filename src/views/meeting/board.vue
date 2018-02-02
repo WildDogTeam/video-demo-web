@@ -43,13 +43,16 @@
         <span class="title">{{ document.videoFiles.video.name }} </span>
         <span class="close" @click="controlInsertVideo('stop')"><i class="icon-25"></i></span>
       </div>
-      <video autoplay="autoplay" ref="insertStream"></video>
+      <div>
+        <video autoplay="autoplay" ref="insertStream"></video>
+        <img src="../../assets/images/ware.gif" alt="" class="ware" v-show='!document.videoFiles.video.ismp4'>
+      </div>
       <div class="video-controls" v-show='document.videoFiles.video.funcsShow'>
         <div class="funcs">
           <span class="func pause" @click="controlInsertVideo('pause')" v-show='document.videoFiles.video.play'><i class="icon icon--19"></i></span>
           <span class="func continue" @click="controlInsertVideo('continue')" v-show='!document.videoFiles.video.play'><i class="icon icon--20"></i></span>
           <span class="func replay" @click="controlInsertVideo('replay')"><i class="icon icon--18"></i></span>
-          <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span>
+          <!-- <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span> -->
         </div>
         <div class="time">{{ document.videoFiles.video.num == 0 ? '00:00:00' : convertTime(document.videoFiles.video.num)}}/{{ document.videoFiles.video.totalTime}}</div>
       </div>
@@ -106,7 +109,8 @@ export default {
             funcsShow: false,
             num: 0,
             totalTime: '00:00:00',
-            timer: null
+            timer: null,
+            ismp4: true
           }
         }
       },
@@ -325,13 +329,9 @@ export default {
       var results = JSON.parse(result.response).results;
       if (status == "success") {
         results.date = Date.now();
-        this.documentRef
-          .child("officeFiles")
-          .push(results)
-          .then(() => {
+        this.documentRef.child("officeFiles").push(results).then(() => {
             if (results.errors.length == 0) {
               this.document.loading = false;
-              // alert("上传成功！");
             } else {
               alert("上传成功！部分页码转码失败！");
             }
@@ -354,7 +354,6 @@ export default {
       getList(config.wd.videoAppid, this.uid, this.token).then(response => {
         this.document.loading = false;
         let data = response.data;
-        // console.log(data)
         if (Array.isArray(data)) {
           let syncData = []
           data.forEach((element, index) => {
@@ -407,9 +406,7 @@ export default {
       );
       //显示之前的大小
       if (this.isStroke) {
-        this.strokeWidth.map(
-          e => (e.active = e.width == tool.width ? true : false)
-        );
+        this.strokeWidth.map(e => (e.active = e.width == tool.width ? true : false));
       } else {
         this.fontSize.map(e => (e.active = e.size == tool.size ? true : false));
       }
@@ -490,9 +487,6 @@ export default {
     },
     objectDeselectedHandler(object) {
       this.toolBar.map(e => ((e.active = false), (this.openStyle = false)));
-    },
-    delOfficeFile(type, key) {
-      this.documentRef.child(`${type == "office" ? "officeFiles" : "videoFiles"}/${key}`).remove();
     },
     operateVideoSuccess() {
       this.getVideoList();
@@ -578,24 +572,20 @@ export default {
     },
 
     delOfficeFile(key) {
-      this.$parent.dialogOption.text = "确认删除所选文档";
+      this.$parent.dialogOption.text = "确认删除所选文档？";
       this.$parent.showDialog = true;
-      this.$parent.$refs.dialog
-        .confirm()
-        .then(() => {
-          this.documentRef.child(`officeFiles/${key}`).remove();
-          if (this.currentFile[key]) {
-            this.boardRef.child(`currentFile${key}`).remove();
-          }
-          this.$parent.showDialog = false;
-        })
-        .catch(() => {
-          this.$parent.showDialog = false;
-        });
+      this.$parent.$refs.dialog.confirm().then(() => {
+        this.documentRef.child(`officeFiles/${key}`).remove();
+        if (this.currentFile[key]) {
+          this.boardRef.child(`currentFile${key}`).remove();
+        }
+        this.$parent.showDialog = false;
+      }).catch(() => {
+        this.$parent.showDialog = false;
+      });
     },
 
     delCurrentFile(key) {
-      // console.log(key);
       this.boardRef.child(`currentFile/${key}`).remove();
     },
 
@@ -638,6 +628,12 @@ export default {
             this.document.videoFiles.video.num++
           }
         }, 1000)
+      }
+
+      if (stream.captureVideo == false) {
+        this.document.videoFiles.video.ismp4 = false
+      } else {
+        this.document.videoFiles.video.ismp4 = true
       }
 
       this.$refs.insertStream && stream.attach(this.$refs.insertStream);

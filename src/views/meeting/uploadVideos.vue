@@ -2,9 +2,11 @@
   <div class="videos">
     <ul class="content-item">
       <li class="upload-input">
-        <div class="file-button"><i class="icon--17">&nbsp;</i>上传</div>
+        <div class="file-button">
+          <i class="icon--17">&nbsp;</i>上传</div>
         <input type="file" class="file-input" accept="audio/mpeg,audio/mp4,video/mp4" @change='uploadVideoFile($event)'>
-        <div class="file-info"><i class="icon--15"></i>支持上传mp3、mp4</div>
+        <div class="file-info">
+          <i class="icon--15"></i>支持上传mp3、mp4</div>
         <div class="refresh" @click='refresh'>刷新</div>
       </li>
       <li class="upload-title">
@@ -54,7 +56,7 @@ export default {
   props: {
     uploadVideoData: {
       type: Object,
-      default: function() {
+      default: function () {
         return {};
       }
     },
@@ -68,13 +70,26 @@ export default {
 
     }
   },
-  created() {},
+  created() { },
 
   methods: {
     uploadVideoFile(e) {
       Bus.$emit("waitingLoading", true);
       let file = e.target.files[0]
-      if (file.name.indexOf('mp3') === -1 || file.name.indexOf('mp4') === -1) {
+      if (file.name.indexOf('mp3') > -1 || file.name.indexOf('mp4') > -1) {
+        let payload = new FormData();
+        payload.append('appId', config.wd.videoAppid);
+        payload.append('userId', this.uid);
+        payload.append('token', this.token);
+        payload.append('alias', '');
+        payload.append('file', file);
+        uploadFile(payload).then(response => {
+          const data = response.data
+          if (data.code == 0) {
+            this.$emit("operateVideoSuccess");
+          }
+        })
+      } else {
         this.$parent.$parent.dialogOption.text = "上传文件格式错误";
         this.$parent.$parent.showDialog = true;
         this.$parent.$parent.$refs.dialog.confirm().then(() => {
@@ -83,21 +98,7 @@ export default {
         }).catch(() => {
           this.$parent.$parent.showDialog = false;
         });
-        return
       }
-
-      let payload = new FormData();
-      payload.append('appId', config.wd.videoAppid);
-      payload.append('userId', this.uid);
-      payload.append('token', this.token);
-      payload.append('alias', '');
-      payload.append('file', file);
-      uploadFile(payload).then(response => {
-        const data = response.data
-        if (data.code == 0) {
-          this.$emit("operateVideoSuccess");
-        }
-      })
     },
     refresh() {
       this.$emit("operateVideoSuccess");
@@ -137,6 +138,5 @@ export default {
 
 </script>
 <style rel="stylesheet/scss" lang="scss">
-
 
 </style>

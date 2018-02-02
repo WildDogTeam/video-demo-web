@@ -150,7 +150,6 @@ export function realSysTime(val) {
 }
 
 export function drag(el, box) {
-  console.log(el, box);
   var dragging = false;
   var boxX, boxY, mouseX, mouseY, offsetX, offsetY;
 

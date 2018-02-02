@@ -2,7 +2,7 @@
 * @Author: liujie3612
 * @Date:   2018-01-26 14:43:29
  * @Last Modified by: ihoey
- * @Last Modified time: 2018-02-02 17:48:04
+ * @Last Modified time: 2018-02-02 18:58:52
 */
 
 .meeting {
@@ -70,6 +70,22 @@
       height: calc(100%/4);
       text-align: center;
       font-size: 12px;
+      position: relative;
+      &:nth-child(1){
+        &:hover{
+          &::after {
+            content: attr(data-title);
+            display: block;
+            width: 50px;
+            height: 30px;
+            line-height: 30px;
+            position: absolute;
+            top: 20px;
+            left: 70px;
+            background: url('../../assets/images/features-bg.png');
+          }
+        }
+      }
       .icon {
         display: block;
         margin: 0 auto 5px;
@@ -655,6 +671,7 @@
           background-color: #3d424e;
           border-top-left-radius: 10px;
           border-top-right-radius: 10px;
+          cursor: move;
           .officefile-title {
             float: left;
           }

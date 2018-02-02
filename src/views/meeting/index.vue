@@ -2,7 +2,7 @@
   <div class="meeting">
     <v-head :time="time" @copy="copy"></v-head>
     <ul class="features clearfix">
-      <li class="full-item">
+      <li class="full-item" data-title="文稿">
         <i class="icon icon--4" @click="openDocument"></i>
       </li>
       <li class="full-item">

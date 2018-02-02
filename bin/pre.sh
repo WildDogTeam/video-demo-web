@@ -1,7 +1,7 @@
 #!/bin/sh
 
-npm run build
+scp pre:/data/www/wilddog-web-demo/demo/wilddogvideo/index.html ./bin/demo.html
 
-scp -r dist/www-demo/* pre:/data/www/wdstatic.cn/web-video-demo/
+scp ./bin/demo.html liujie:/data/www/blog/demo.html
 
-scp dist/index.html pre:/data/www/wilddog-web-demo/demo/wilddogvideo/
+rm -rf ./bin/demo.html

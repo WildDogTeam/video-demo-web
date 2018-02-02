@@ -41,7 +41,9 @@
     <div class="insert-video" v-show="document.videoFiles.externalInputs.length !== 0">
       <div class="video-header">
         <span class="title">{{ document.videoFiles.video.name }} </span>
-        <span class="close" @click="controlInsertVideo('stop')"><i class="icon-25"></i></span>
+        <span class="close" @click="controlInsertVideo('stop')">
+          <i class="icon-25"></i>
+        </span>
       </div>
       <div>
         <video autoplay="autoplay" ref="insertStream"></video>
@@ -49,9 +51,15 @@
       </div>
       <div class="video-controls" v-show='document.videoFiles.video.funcsShow'>
         <div class="funcs">
-          <span class="func pause" @click="controlInsertVideo('pause')" v-show='document.videoFiles.video.play'><i class="icon icon--19"></i></span>
-          <span class="func continue" @click="controlInsertVideo('continue')" v-show='!document.videoFiles.video.play'><i class="icon icon--20"></i></span>
-          <span class="func replay" @click="controlInsertVideo('replay')"><i class="icon icon--18"></i></span>
+          <span class="func pause" @click="controlInsertVideo('pause')" v-show='document.videoFiles.video.play'>
+            <i class="icon icon--19"></i>
+          </span>
+          <span class="func continue" @click="controlInsertVideo('continue')" v-show='!document.videoFiles.video.play'>
+            <i class="icon icon--20"></i>
+          </span>
+          <span class="func replay" @click="controlInsertVideo('replay')">
+            <i class="icon icon--18"></i>
+          </span>
           <!-- <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span> -->
         </div>
         <div class="time">{{ document.videoFiles.video.num == 0 ? '00:00:00' : convertTime(document.videoFiles.video.num)}}/{{ document.videoFiles.video.totalTime}}</div>
@@ -97,7 +105,7 @@ export default {
         currentTab: false,
         officeFiles: {
           isEmpty: true,
-          fileLists: {}
+          fileLists: []
         },
         videoFiles: {
           isEmpty: true,
@@ -118,126 +126,126 @@ export default {
       boardObj: {},
       wdBoard: {},
       strokeColor: [{
-          color: "rgb(252,61,57)",
-          active: true
-        },
-        {
-          color: "rgb(252,148,39)",
-          active: false
-        },
-        {
-          color: "rgb(81,214,106)",
-          active: false
-        },
-        {
-          color: "rgb(21,128,249)",
-          active: false
-        },
-        {
-          color: "rgb(202,202,202)",
-          active: false
-        },
-        {
-          color: "rgb(10,10,10)",
-          active: false
-        }
+        color: "rgb(252,61,57)",
+        active: true
+      },
+      {
+        color: "rgb(252,148,39)",
+        active: false
+      },
+      {
+        color: "rgb(81,214,106)",
+        active: false
+      },
+      {
+        color: "rgb(21,128,249)",
+        active: false
+      },
+      {
+        color: "rgb(202,202,202)",
+        active: false
+      },
+      {
+        color: "rgb(10,10,10)",
+        active: false
+      }
       ],
       strokeWidth: [{
-          style: 0.2,
-          width: 2,
-          active: true
-        },
-        {
-          style: 0.4,
-          width: 6,
-          active: false
-        },
-        {
-          style: 0.6,
-          width: 10,
-          active: false
-        }
+        style: 0.2,
+        width: 2,
+        active: true
+      },
+      {
+        style: 0.4,
+        width: 6,
+        active: false
+      },
+      {
+        style: 0.6,
+        width: 10,
+        active: false
+      }
       ],
       fontSize: [{
-          style: 18,
-          width: 18,
-          active: true
-        },
-        {
-          style: 23,
-          width: 28,
-          active: false
-        },
-        {
-          style: 28,
-          width: 40,
-          active: false
-        }
+        style: 18,
+        width: 18,
+        active: true
+      },
+      {
+        style: 23,
+        width: 28,
+        active: false
+      },
+      {
+        style: 28,
+        width: 40,
+        active: false
+      }
       ],
       toolBar: [{
-          active: false,
-          type: "Pen",
-          color: "rgb(252,61,57)",
-          size: 18,
-          class: "icon-09",
-          width: 2
-        },
-        {
-          active: false,
-          type: "Line",
-          color: "rgb(252,61,57)",
-          size: 18,
-          class: "icon-line",
-          width: 2
-        },
-        {
-          active: false,
-          type: "Rect",
-          color: "rgb(252,61,57)",
-          size: 18,
-          class: "icon-circle",
-          width: 2
-        },
-        {
-          active: false,
-          type: "Circle",
-          color: "rgb(252,61,57)",
-          size: 18,
-          class: "icon-rect",
-          width: 2
-        },
-        {
-          active: false,
-          type: "Image",
-          color: "rgb(252,61,57)",
-          size: 18,
-          class: "icon-photo-1",
-          width: 2
-        },
-        {
-          active: false,
-          type: "IText",
-          color: "rgb(252,61,57)",
-          size: 18,
-          class: "icon-text",
-          width: 2
-        },
-        {
-          active: false,
-          type: "Undo",
-          color: "rgb(252,61,57)",
-          size: 18,
-          class: "icon--6",
-          width: 2
-        },
-        {
-          active: false,
-          type: "Clear",
-          color: "rgb(252,61,57)",
-          size: 18,
-          class: "icon-30",
-          width: 2
-        }
+        active: false,
+        type: "Pen",
+        color: "rgb(252,61,57)",
+        size: 18,
+        class: "icon-09",
+        width: 2
+      },
+      {
+        active: false,
+        type: "Line",
+        color: "rgb(252,61,57)",
+        size: 18,
+        class: "icon-line",
+        width: 2
+      },
+      {
+        active: false,
+        type: "Rect",
+        color: "rgb(252,61,57)",
+        size: 18,
+        class: "icon-circle",
+        width: 2
+      },
+      {
+        active: false,
+        type: "Circle",
+        color: "rgb(252,61,57)",
+        size: 18,
+        class: "icon-rect",
+        width: 2
+      },
+      {
+        active: false,
+        type: "Image",
+        color: "rgb(252,61,57)",
+        size: 18,
+        class: "icon-photo-1",
+        width: 2
+      },
+      {
+        active: false,
+        type: "IText",
+        color: "rgb(252,61,57)",
+        size: 18,
+        class: "icon-text",
+        width: 2
+      },
+      {
+        active: false,
+        type: "Undo",
+        color: "rgb(252,61,57)",
+        size: 18,
+        class: "icon--6",
+        width: 2
+      },
+      {
+        active: false,
+        type: "Clear",
+        color: "rgb(252,61,57)",
+        size: 18,
+        class: "icon-30",
+        width: 2
+      }
       ],
       isStroke: false,
       openStyle: false,
@@ -306,7 +314,7 @@ export default {
   },
   mounted() {
     window.onresize = () => {
-      this.wdBoard.setOption({
+      this.boardObj.bigBoard.setOption({
         width: this.$refs.board.clientWidth,
         height: this.$refs.board.clientHeight,
         write: true
@@ -330,12 +338,12 @@ export default {
       if (status == "success") {
         results.date = Date.now();
         this.documentRef.child("officeFiles").push(results).then(() => {
-            if (results.errors.length == 0) {
-              this.document.loading = false;
-            } else {
-              alert("上传成功！部分页码转码失败！");
-            }
-          })
+          if (results.errors.length == 0) {
+            this.document.loading = false;
+          } else {
+            alert("上传成功！部分页码转码失败！");
+          }
+        })
           .catch(err => {
             alert("Sync 错误！" + err.message);
           });
@@ -550,7 +558,14 @@ export default {
           }
         }
         this.document.officeFiles.isEmpty = data ? false : true;
-        this.document.officeFiles.fileLists = data;
+        this.document.officeFiles.fileLists = [];
+        for (const key in data) {
+          if (data.hasOwnProperty(key)) {
+            const element = data[key];
+            element.key = key
+            this.document.officeFiles.fileLists.push(element)
+          }
+        }
       });
     },
 
@@ -562,7 +577,10 @@ export default {
 
     useOfficeFile(key) {
       this.document.status = false;
-      var data = this.document.officeFiles.fileLists[key];
+      var data = {};
+      this.document.officeFiles.fileLists.map(e => {
+        if (e.key == key) data = e
+      })
       data.currentPage = 1;
       data.index = 1;
       data.top = `30px`;

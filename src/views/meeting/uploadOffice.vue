@@ -12,15 +12,15 @@
       <div class="file-div">上传时间</div>
       <div class="file-div">操作</div>
     </li>
-    <li v-for="(item, key, index) in uploadOfficeData.fileLists" :key="key" class="upload-title-content">
+    <li v-for="(item, index) in uploadOfficeData.fileLists.slice().reverse()" :key="index" class="upload-title-content">
       <div class="file-div">{{ index + 1 }}</div>
       <div class="file-type-icon" :class="item.fileName | fileType"></div>
       <div class="file-div file-name">{{item.fileName | splitJoin}}</div>
       <div class="file-div size">{{item.size | readablizeBytes(1)}}</div>
       <div class="file-div date">{{item.date | parseTime('{y}/{m}/{d} {h}:{i}:{s}')}}</div>
       <div class="file-div">
-        <span class="file-ues" @click="useFile(key)">使用</span>
-        <span class="file-del" @click="delFile(key)">删除</span>
+        <span class="file-ues" @click="useFile(item.key)">使用</span>
+        <span class="file-del" @click="delFile(item.key)">删除</span>
       </div>
     </li>
     <div v-show="uploadOfficeData.isEmpty" class="empty">
@@ -37,6 +37,7 @@ export default {
   },
   methods: {
     useFile(key) {
+      console.log(key);
       this.$emit("useOfficeFile", key);
     },
     delFile(key) {

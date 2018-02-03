@@ -149,13 +149,14 @@ export function realSysTime(val) {
   return `${hours}:${minutes}:${seconds}`;
 }
 
+
 export function drag(el, box) {
   var dragging = false;
   var boxX, boxY, mouseX, mouseY, offsetX, offsetY;
 
   box.onmousedown = down;
   el.onmousemove = move;
-  el.onmouseup = up;
+  document.onmouseup = up;
 
   function down(e) {
     dragging = true;
@@ -198,8 +199,8 @@ export function drag(el, box) {
       y = e.clientY + document.body.scrollTop - document.body.clientTop;
     }
     return {
-      x: x,
-      y: y
+      x,
+      y
     };
   }
 }

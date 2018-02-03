@@ -1,8 +1,8 @@
 /*
 * @Author: liujie3612
 * @Date:   2018-01-26 14:43:29
- * @Last Modified by:   liujie3612
- * @Last Modified time: 2018-02-03 10:24:39
+ * @Last Modified by: ihoey
+ * @Last Modified time: 2018-02-03 11:10:14
 */
 
 .meeting {
@@ -125,6 +125,7 @@
   }
   .content {
     min-height: calc(100% - 52px);
+    user-select: none; 
     .video-box {
       width: 100%;
       height: 180px;
@@ -243,6 +244,7 @@
   .features-others {
     height: calc(100vh - 232px);
     display: flex;
+    user-select: none;    
     .board {
       height: 100%;
       flex: 8;
@@ -265,6 +267,10 @@
           cursor: move;
           .title {
             float: left;
+            max-width: 400px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
           }
           .close {
             float: right;

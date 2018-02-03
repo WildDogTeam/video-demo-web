@@ -49,8 +49,8 @@
         <video autoplay="autoplay" ref="insertStream"></video>
         <img src="../../assets/images/ware.gif" alt="" class="ware" v-show='!document.videoFiles.video.ismp4'>
       </div>
-      <div class="video-controls" v-show='document.videoFiles.video.funcsShow'>
-        <div class="funcs">
+      <div class="video-controls">
+        <div class="funcs"  v-show='document.videoFiles.video.funcsShow'>
           <span class="func pause" @click="controlInsertVideo('pause')" v-show='document.videoFiles.video.play'>
             <i class="icon icon--19"></i>
           </span>
@@ -62,7 +62,7 @@
           </span>
           <!-- <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span> -->
         </div>
-        <div class="time">{{ document.videoFiles.video.num == 0 ? '00:00:00' : convertTime(document.videoFiles.video.num)}}/{{ document.videoFiles.video.totalTime}}</div>
+        <div class="time"  v-show='document.videoFiles.video.funcsShow'>{{ document.videoFiles.video.num == 0 ? '00:00:00' : convertTime(document.videoFiles.video.num)}}/{{ document.videoFiles.video.totalTime}}</div>
       </div>
     </div>
   </div>

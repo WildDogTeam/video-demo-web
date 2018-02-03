@@ -352,16 +352,16 @@ export default {
       }
     });
 
-    uploader.bind('Error', function (uploader, err) {
+    uploader.bind('Error', (uploader, err) => {
       console.error('Error:', err);
       this.document.loading = false
       this.$parent.dialogOption.text = "上传文件格式错误";
-        this.$parent.showDialog = true;
-        this.$parent.$refs.dialog.confirm().then(() => {
-          this.$parent.showDialog = false;
-        }).catch(() => {
-          this.$parent.showDialog = false;
-        });
+      this.$parent.showDialog = true;
+      this.$parent.$refs.dialog.confirm().then(() => {
+        this.$parent.showDialog = false;
+      }).catch(() => {
+        this.$parent.showDialog = false;
+      });
     });
 
     drag(this.$refs.board, this.$refs.videoBox)

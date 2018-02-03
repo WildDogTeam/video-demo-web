@@ -2,7 +2,7 @@
 * @Author: liujie3612
 * @Date:   2018-01-26 14:43:29
  * @Last Modified by: ihoey
- * @Last Modified time: 2018-02-03 11:10:14
+ * @Last Modified time: 2018-02-03 13:09:45
 */
 
 .meeting {
@@ -686,9 +686,12 @@
           background-color: #3d424e;
           border-top-left-radius: 10px;
           border-top-right-radius: 10px;
-          cursor: move;
           .officefile-title {
             float: left;
+            max-width: 400px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
           }
           .head-close {
             float: right;

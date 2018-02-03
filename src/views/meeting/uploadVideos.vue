@@ -35,6 +35,7 @@
           </div>
           <div class="file-failed" v-show="item.status == '4'">
             转码失败
+            <span class="file-del" @click="delVideoFile(item.id)">删除</span>
           </div>
         </div>
       </li>

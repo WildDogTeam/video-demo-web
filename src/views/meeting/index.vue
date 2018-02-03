@@ -4,6 +4,10 @@
     <ul class="features clearfix">
       <li class="full-item" data-title="文稿">
         <i class="icon icon--4" @click="openDocument"></i>
+        <div class="features-bg">
+          <img src="../../assets/images/features-bg.svg" alt="" class="img">
+          <span class="text">文稿</span>
+        </div>
       </li>
       <li class="full-item">
         <i class="icon icon--8" @click="sorry"></i>

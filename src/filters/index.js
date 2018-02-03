@@ -71,8 +71,13 @@ export function fileType(e) {
   return type;
 }
 
-export function readablizeBytes(bytes,num) {
+export function readablizeBytes(bytes, num) {
   const s = ["Bytes", "KB", "MB", "GB", "TB", "PB"];
   const e = Math.floor(Math.log(bytes) / Math.log(1024));
   return (bytes / Math.pow(1024, Math.floor(e))).toFixed(num) + " " + s[e];
+}
+
+export function splitType(e) {
+  let type = e.split(".");
+  return e.replace(type[1], '');
 }

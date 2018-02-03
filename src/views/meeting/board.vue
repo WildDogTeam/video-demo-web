@@ -40,7 +40,7 @@
     <office-file :currentFile="currentFile" :boardRef="boardRef" :boardObj="boardObj" @onBoardChange="onBoardChange" @delCurrentFile="delCurrentFile" @pageLast="pageLast" @pageNext="pageNext"></office-file>
     <div class="insert-video" v-show="document.videoFiles.externalInputs.length !== 0" ref="videoBox">
       <div class="video-header">
-        <span class="title">{{ document.videoFiles.video.name }} </span>
+        <div class="title"><span class="title-name">{{ document.videoFiles.video.name | splitType}}</span><span class="title-type">{{document.videoFiles.video.name | fileType}}</span></div>
         <span class="close" @click="controlInsertVideo('stop')">
           <i class="icon-25"></i>
         </span>

@@ -163,7 +163,7 @@ export function uploadClient(params) {
       flash_swf_url: 'js/plupload/Moxie.swf', //引入flash,相对路径
       filters: [{
         title: "office",
-        extensions: "pdf,doc,docx,ppt,pptx,pptm"
+        extensions: "pdf,doc,docx,ppt,pptx"
       }],
     })
   }
@@ -172,12 +172,6 @@ export function uploadClient(params) {
 
   uploader.bind('UploadProgress', function (uploader, file) {
     console.log('Progress:', file.percent, "%");
-    //每个事件监听函数都会传入一些很有用的参数，
-    //我们可以利用这些参数提供的信息来做比如更新UI，提示上传进度等操作
-  });
-
-  uploader.bind('Error', function (uploader, err) {
-    console.error('Error:', err);
     //每个事件监听函数都会传入一些很有用的参数，
     //我们可以利用这些参数提供的信息来做比如更新UI，提示上传进度等操作
   });

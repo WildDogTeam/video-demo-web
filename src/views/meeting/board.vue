@@ -50,7 +50,7 @@
         <img src="../../assets/images/ware.gif" alt="" class="ware" v-show='!document.videoFiles.video.ismp4'>
       </div>
       <div class="video-controls">
-        <div class="funcs"  v-show='document.videoFiles.video.funcsShow'>
+        <div class="funcs" v-show='document.videoFiles.video.funcsShow'>
           <span class="func pause" @click="controlInsertVideo('pause')" v-show='document.videoFiles.video.play'>
             <i class="icon icon--19"></i>
           </span>
@@ -62,7 +62,7 @@
           </span>
           <!-- <span class="func stop" @click="controlInsertVideo('stop')"><i class="icon icon--21"></i></span> -->
         </div>
-        <div class="time"  v-show='document.videoFiles.video.funcsShow'>{{ document.videoFiles.video.num == 0 ? '00:00:00' : convertTime(document.videoFiles.video.num)}}/{{ document.videoFiles.video.totalTime}}</div>
+        <div class="time" v-show='document.videoFiles.video.funcsShow'>{{ document.videoFiles.video.num == 0 ? '00:00:00' : convertTime(document.videoFiles.video.num)}}/{{ document.videoFiles.video.totalTime}}</div>
       </div>
     </div>
   </div>
@@ -351,6 +351,19 @@ export default {
         alert("上传失败！");
       }
     });
+
+    uploader.bind('Error', function (uploader, err) {
+      console.error('Error:', err);
+      this.document.loading = false
+      this.$parent.dialogOption.text = "上传文件格式错误";
+        this.$parent.showDialog = true;
+        this.$parent.$refs.dialog.confirm().then(() => {
+          this.$parent.showDialog = false;
+        }).catch(() => {
+          this.$parent.showDialog = false;
+        });
+    });
+
     drag(this.$refs.board, this.$refs.videoBox)
   },
   methods: {
@@ -506,9 +519,6 @@ export default {
         'name': name
       })
     },
-    openDocument() {
-      this.document.status = true;
-    },
     controlInsertVideo() {
       const arg = arguments[0];
       controlFile(config.wd.videoAppid, this.roomId, arg, this.document.videoFiles.externalInputs[0].streamId, this.token).then(response => {
@@ -541,7 +551,6 @@ export default {
         }
       });
     },
-
     openDocument() {
       this.document.status = true;
     },

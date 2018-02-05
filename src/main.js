@@ -8,7 +8,12 @@ import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import * as filters from './filters';
 
-Vue.config.productionTip = false
+
+Vue.config.productionTip = false;
+
+Object.keys(filters).forEach(key => {
+  Vue.filter(key, filters[key])
+});
 
 Object.keys(filters).forEach(key => {
   Vue.filter(key, filters[key])

@@ -1,8 +1,8 @@
 <template>
   <div>
     <div v-for="(item, key) in currentFile" class="officefile" :key="key" :style="{top:item.top,left:item.left,zIndex:item.index}">
-      <div class="officefile-head" @click="onBoardChangeCurrent(key)">
-        <div class="officefile-title">{{ item.fileName | splitJoin }}</div>
+      <div class="officefile-head" @click="onBoardChangeCurrent(key)" >
+        <div class="officefile-title"><span class="officefile-name">{{ item.fileName | splitJoin | splitType}}</span><span class="officefile-type">{{item.fileName | fileType}}</span></div>
         <div class="head-close" @click="delCurrentFile(key)">
           <i class="icon-25"></i>
         </div>
@@ -23,8 +23,9 @@
     </div>
   </div>
 </template>
-
 <script>
+import { drag } from "@/utils/index.js";
+
 export default {
   name: "officeFile",
   props: {
@@ -40,21 +41,18 @@ export default {
     };
   },
   updated() {
-    this.boardRefs
-      .child(`currentFile/${this.currentBoard}/currentPage`)
-      .once("value", snapshot => {
-        const page = snapshot.val()
-          ? snapshot.val() - 1 == -1 ? 0 : snapshot.val() - 1
-          : 0;
+    this.boardRefs.child(`currentFile/${this.currentBoard}/currentPage`).once("value", snapshot => {
+      if (snapshot.val()) {
+        const page = snapshot.val() ? snapshot.val() - 1 == -1 ? 0 : snapshot.val() - 1 : 0;
         this.$nextTick(() => {
           if (
-            this.boardObj[this.currentBoard].currentPage() + 1 !=
-            snapshot.val()
+            this.boardObj[this.currentBoard].currentPage() + 1 != snapshot.val()
           ) {
             this.boardObj[this.currentBoard].changePage(page);
           }
         });
-      });
+      }
+    });
   },
   methods: {
     delCurrentFile(key) {
@@ -70,16 +68,8 @@ export default {
       this.$emit("onBoardChange", object);
     },
     onBoardChangeCurrent(key) {
-      // console.log(key,'onBoardChangeCurrent');
       this.currentBoard = key;
-      // console.log(this.currentBoard);
       this.onBoardChange(this.boardObj[key]);
-      for (const item in this.currentFile) {
-        if (this.currentFile.hasOwnProperty(item)) {
-          this.boardRef.child(`currentFile/${item}`).update({ index: 1 });
-        }
-      }
-      this.boardRef.child(`currentFile/${key}`).update({ index: 2 });
     },
     establishConnection(wsUrl) {
       var currentPageNumber = 0;
@@ -89,7 +79,7 @@ export default {
       var maxReconnectDelay = 30000;
       var resetDelayTimeout = null;
 
-      var onDisconnect = () =>{
+      var onDisconnect = () => {
         if (resetDelayTimeout) {
           clearTimeout(resetDelayTimeout);
         }
@@ -102,44 +92,42 @@ export default {
         currentDelay = Math.random() * currentDelay;
         reconnectDelay = Math.min(maxReconnectDelay, reconnectDelay * 1.3);
 
-        setTimeout(() =>{
+        setTimeout(() => {
           lastConnectionAttemptTime = Date.now();
           this.pptSyncWs = new WebSocket(wsUrl);
           wsInit(this.pptSyncWs);
         }, currentDelay);
       };
 
-      var wsInit = (ws)=> {
-        ws.onopen = ()=> {
-          resetDelayTimeout = setTimeout(()=> {
+      var wsInit = ws => {
+        ws.onopen = () => {
+          resetDelayTimeout = setTimeout(() => {
             reconnectDelay = 1000;
             resetDelayTimeout = null;
           }, 30000);
         };
-
-        ws.onmessage = (message) =>{
-          // console.log(message);
+        ws.onmessage = message => {
           if (message.data != "3") {
             var pageIndex = message.data.split(",")[0] - 1;
-            // console.log(pageIndex);
             if (currentPageNumber != pageIndex) {
               currentPageNumber = pageIndex;
-              // console.log(this.currentBoard,'onmessage');
               this.boardObj[this.currentBoard].changePage(pageIndex);
-              this.boardRef.child(`currentFile/${this.currentBoard}`).update({ currentPage: pageIndex + 1 });
+              this.boardRef
+                .child(`currentFile/${this.currentBoard}`)
+                .update({ currentPage: pageIndex + 1 });
             }
           }
         };
 
-        ws.onerror = ()=> {
+        ws.onerror = () => {
           ws.close();
         };
 
-        var interval = setInterval(()=> {
+        var interval = setInterval(() => {
           ws.send("2");
         }, 25000);
 
-        ws.onclose = ()=> {
+        ws.onclose = () => {
           clearInterval(interval);
           onDisconnect();
         };
@@ -156,38 +144,25 @@ export default {
     }
   },
   watch: {
-    currentFile: function(obj) {
+    currentFile: function (obj) {
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
           const element = obj[key];
           if (!this.boardObj[key]) {
-            // console.log('watch',key);
             this.currentBoard = key;
             this.$nextTick(() => {
               this.boardObj[key] = new WildBoard(
                 this.boardRef.child(`currentFile/${key}`),
                 this.$parent.uid,
-                key,
-                {
+                key, {
                   width: 595,
                   height: element.info ? 842 : 338,
                   write: true
                 }
               );
-              //   console.log(this.boardObj[key]);
               this.onBoardChange(this.boardObj[key]);
               if (!element.info) {
-                // console.log(element);
-                // console.log(
-                //   `wss://pptsyncserver.wilddog.com/api/Ppt/?isListener=true&syn=${this.excludeSpecial(
-                //     element.fileName
-                //   )}&user=${Date.now()}`
-                // );
-                this.establishConnection(
-                  `wss://pptsyncserver.wilddog.com/api/Ppt/?isListener=true&syn=${this.excludeSpecial(
-                    element.fileName
-                  )}&user=${Date.now()}`
-                );
+                this.establishConnection(`wss://pptsyncserver.wilddog.com/api/Ppt/?isListener=true&syn=${this.excludeSpecial(element.fileName)}&user=${Date.now()}`);
               }
             });
           }
@@ -196,4 +171,5 @@ export default {
     }
   }
 };
+
 </script>

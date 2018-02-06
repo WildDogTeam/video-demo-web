@@ -1,6 +1,5 @@
 // see http://vuejs-templates.github.io/webpack for documentation.
 var path = require('path');
-// var config = require('../src/config');
 
 module.exports = {
   build: {

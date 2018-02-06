@@ -40,10 +40,11 @@ module.exports = {
 
 ![](gitImages/VideoAppID.png)
 
-
 #### 可选配置
 
 1.使用wilddog的在线互动白板功能时，如需要操作上传图片，则需要配置[七牛](https://developer.qiniu.com/)的信息
+
+2.在`config`的`index.js`文件下， 找到`assetsSubDirectory`和`assetsPublicPath`,可以配置打包生成的静态目录和静态文件的前缀路径
 
 
 ## 运行

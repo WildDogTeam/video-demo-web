@@ -40,7 +40,10 @@
     <office-file :currentFile="currentFile" :boardRef="boardRef" :boardObj="boardObj" @onBoardChange="onBoardChange" @delCurrentFile="delCurrentFile" @pageLast="pageLast" @pageNext="pageNext"></office-file>
     <div class="insert-video" v-show="document.videoFiles.externalInputs.length !== 0" ref="videoBox">
       <div class="video-header">
-        <div class="title"><span class="title-name">{{ document.videoFiles.video.name | splitType}}</span><span class="title-type">{{document.videoFiles.video.name | fileType}}</span></div>
+        <div class="title">
+          <span class="title-name">{{ document.videoFiles.video.name | splitType}}</span>
+          <span class="title-type">{{document.videoFiles.video.name | fileType}}</span>
+        </div>
         <span class="close" @click="controlInsertVideo('stop')">
           <i class="icon-25"></i>
         </span>
@@ -521,35 +524,37 @@ export default {
     },
     controlInsertVideo() {
       const arg = arguments[0];
-      controlFile(config.wd.videoAppid, this.roomId, arg, this.document.videoFiles.externalInputs[0].streamId, this.token).then(response => {
-        let data = response.data;
-        switch (arg) {
-          case "pause":
-            this.document.videoFiles.video.play = false;
-            clearInterval(this.document.videoFiles.video.timer)
-            break;
-          case "continue":
-            this.document.videoFiles.video.play = true;
-            this.document.videoFiles.video.timer = setInterval(() => {
-              if (this.document.videoFiles.video.num < time2sec(this.document.videoFiles.video.totalTime)) {
-                this.document.videoFiles.video.num++
-              }
-            }, 1000)
-            break;
-          case "replay":
-            this.document.videoFiles.video.num = 0
-            this.document.videoFiles.video.play = true;
-            break;
-          case "stop":
-            this.document.videoFiles.externalInputs = [];
-            clearInterval(this.document.videoFiles.video.timer)
-            this.document.videoFiles.video.num = 0
-            break;
+      if (this.document.videoFiles.externalInputs[0].streamOwners[0].userId == this.uid) {
+        controlFile(config.wd.videoAppid, this.roomId, arg, this.document.videoFiles.externalInputs[0].streamId, this.token).then(response => {
+          let data = response.data;
+        });
+      }
+      switch (arg) {
+        case "pause":
+          this.document.videoFiles.video.play = false;
+          clearInterval(this.document.videoFiles.video.timer)
+          break;
+        case "continue":
+          this.document.videoFiles.video.play = true;
+          this.document.videoFiles.video.timer = setInterval(() => {
+            if (this.document.videoFiles.video.num < time2sec(this.document.videoFiles.video.totalTime)) {
+              this.document.videoFiles.video.num++
+            }
+          }, 1000)
+          break;
+        case "replay":
+          this.document.videoFiles.video.num = 0
+          this.document.videoFiles.video.play = true;
+          break;
+        case "stop":
+          this.document.videoFiles.externalInputs = [];
+          clearInterval(this.document.videoFiles.video.timer)
+          this.document.videoFiles.video.num = 0
+          break;
 
-          default:
-            break;
-        }
-      });
+        default:
+          break;
+      }
     },
     openDocument() {
       this.document.status = true;
@@ -656,6 +661,8 @@ export default {
             this.document.videoFiles.video.num++
           }
         }, 1000)
+      } else {
+        this.document.videoFiles.video.funcsShow = false;
       }
 
       if (stream.captureVideo == false) {
